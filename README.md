@@ -1,1 +1,1 @@
-# synairgy-ai-site
+# synairgy.ai
