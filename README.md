@@ -1,1 +1,0 @@
-# synairgy.ai
