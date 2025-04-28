@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create AI Benefits Image</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="600" height="400" style="border:1px solid #000;"></canvas>
+    <br>
+    <button onclick="downloadImage()">Download Image</button>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Background
+        ctx.fillStyle = '#1A1A1A';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw orange gradient
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, '#FF5F00');
+        gradient.addColorStop(1, '#FF8F40');
+
+        // Draw circles
+        for (let i = 0; i < 10; i++) {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            const radius = 20 + Math.random() * 50;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.globalAlpha = 0.2;
+            ctx.fill();
+        }
+
+        // Reset alpha
+        ctx.globalAlpha = 1.0;
+
+        // Draw text
+        ctx.font = 'bold 40px Arial';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.fillText('AI-АВТОМАТИЗАЦИЯ', canvas.width / 2, 150);
+        ctx.fillText('ДЛЯ БИЗНЕСА', canvas.width / 2, 200);
+
+        // Draw icons
+        const icons = ['💡', '🚀', '⚙️', '📊', '🤖'];
+        const iconSize = 40;
+        const spacing = canvas.width / (icons.length + 1);
+        
+        for (let i = 0; i < icons.length; i++) {
+            ctx.font = `${iconSize}px Arial`;
+            ctx.fillText(icons[i], spacing * (i + 1), 300);
+        }
+
+        // Function to download the image
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'ai-benefits.jpg';
+            link.href = canvas.toDataURL('image/jpeg');
+            link.click();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
+    <!-- Background -->
+    <rect width="600" height="400" fill="#1A1A1A" />
+    
+    <!-- Circles -->
+    <circle cx="100" cy="100" r="50" fill="#FF5F00" opacity="0.2" />
+    <circle cx="200" cy="150" r="70" fill="#FF5F00" opacity="0.2" />
+    <circle cx="300" cy="80" r="40" fill="#FF5F00" opacity="0.2" />
+    <circle cx="400" cy="200" r="60" fill="#FF5F00" opacity="0.2" />
+    <circle cx="500" cy="120" r="45" fill="#FF5F00" opacity="0.2" />
+    <circle cx="150" cy="300" r="55" fill="#FF5F00" opacity="0.2" />
+    <circle cx="350" cy="320" r="65" fill="#FF5F00" opacity="0.2" />
+    <circle cx="450" cy="350" r="50" fill="#FF5F00" opacity="0.2" />
+    
+    <!-- Text -->
+    <text x="300" y="150" font-family="Arial" font-size="40" font-weight="bold" fill="#FFFFFF" text-anchor="middle">AI-АВТОМАТИЗАЦИЯ</text>
+    <text x="300" y="200" font-family="Arial" font-size="40" font-weight="bold" fill="#FFFFFF" text-anchor="middle">ДЛЯ БИЗНЕСА</text>
+    
+    <!-- Icons -->
+    <text x="100" y="300" font-family="Arial" font-size="40" fill="#FFFFFF" text-anchor="middle">💡</text>
+    <text x="200" y="300" font-family="Arial" font-size="40" fill="#FFFFFF" text-anchor="middle">🚀</text>
+    <text x="300" y="300" font-family="Arial" font-size="40" fill="#FFFFFF" text-anchor="middle">⚙️</text>
+    <text x="400" y="300" font-family="Arial" font-size="40" fill="#FFFFFF" text-anchor="middle">📊</text>
+    <text x="500" y="300" font-family="Arial" font-size="40" fill="#FFFFFF" text-anchor="middle">🤖</text>
+</svg>
