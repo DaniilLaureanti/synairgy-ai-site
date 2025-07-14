@@ -836,6 +836,54 @@ footer {
     }
 }
 
+@media (min-width: 769px) {
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+  nav ul {
+    display: flex !important;
+    position: static;
+    box-shadow: none;
+    background: none;
+  }
+}
+
+/* Responsive base styles */
+img, .container {
+  max-width: 100%;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 16px;
+    padding: 0 10px;
+  }
+  .container {
+    padding: 10px;
+  }
+  h1, h2, h3 {
+    font-size: 1.2em;
+  }
+  nav, .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 15px;
+    padding: 0 5px;
+  }
+  h1 {
+    font-size: 1.1em;
+  }
+  .container {
+    padding: 5px;
+  }
+}
+
 /* Animation Classes */
 .fade-in {
     animation: fadeIn 1s ease-out;
