@@ -30,7 +30,7 @@
 .lang-btn {
     display: inline-block;
     padding: 5px 10px;
-    background-color: transparent;
+    background-color: #FF5F00;
     color: #fff;
     border: 2px solid #FF6B00;
     border-radius: 4px;
@@ -715,7 +715,7 @@ footer {
 /* Responsive Styles */
 @media (max-width: 768px) {
     .animated-title {
-        font-size: 36px;
+        font-size: 24px;
     }
     
     .benefit-card {
@@ -833,6 +833,15 @@ footer {
     
     nav ul li a {
         font-size: 20px;
+    }
+    h1 {
+        font-size: 22px;
+    }
+    h2 {
+        font-size: 20px;
+    }
+    h3 {
+        font-size: 18px;
     }
 }
 
