@@ -932,3 +932,28 @@ img, .container {
 .float {
     animation: float 3s ease-in-out infinite;
 }
+
+@media (max-width: 768px) {
+  .business-help-cards, .benefits-container {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
+  }
+  .business-help-card, .benefit-card {
+    min-width: 0;
+    width: 95vw;
+    max-width: 420px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 18px 10px;
+    word-break: break-word;
+  }
+  .business-help-card h3, .benefit-content h3 {
+    font-size: 16px;
+    word-break: break-word;
+  }
+  .benefit-content {
+    padding: 10px;
+  }
+}
