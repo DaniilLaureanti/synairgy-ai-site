@@ -872,16 +872,18 @@ img, .container {
   }
   .header-container {
     min-height: 64px;
-    padding: 0 16px 0 16px;
+    padding: 0 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
+    gap: 12px;
   }
   .logo {
     font-size: 22px;
     line-height: 1;
     padding: 0;
+    margin-right: 12px;
   }
   .language-switch {
     position: absolute;
@@ -889,6 +891,9 @@ img, .container {
     right: 64px;
     transform: translateY(-50%);
     z-index: 1001;
+    min-width: 56px;
+    display: flex;
+    justify-content: center;
   }
   .mobile-menu-toggle {
     position: absolute;
@@ -896,6 +901,9 @@ img, .container {
     right: 16px;
     transform: translateY(-50%);
     z-index: 1001;
+    min-width: 40px;
+    display: flex;
+    justify-content: center;
   }
 }
 
