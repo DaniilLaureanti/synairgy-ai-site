@@ -864,19 +864,38 @@ img, .container {
 }
 
 @media (max-width: 768px) {
-  body {
-    font-size: 16px;
-    padding: 0 10px;
+  header {
+    min-height: 64px;
+    padding: 0;
+    display: flex;
+    align-items: center;
   }
-  .container {
-    padding: 10px;
+  .header-container {
+    min-height: 64px;
+    padding: 0 16px 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
   }
-  h1, h2, h3 {
-    font-size: 1.2em;
+  .logo {
+    font-size: 22px;
+    line-height: 1;
+    padding: 0;
   }
-  nav, .navbar {
-    flex-direction: column;
-    align-items: flex-start;
+  .language-switch {
+    position: absolute;
+    top: 50%;
+    right: 64px;
+    transform: translateY(-50%);
+    z-index: 1001;
+  }
+  .mobile-menu-toggle {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    z-index: 1001;
   }
 }
 
