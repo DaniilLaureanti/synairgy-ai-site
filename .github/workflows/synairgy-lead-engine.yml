@@ -63,6 +63,9 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_*.py'
       - name: Run lead engine
         run: python src/lead_engine.py
+      - name: Send due follow-up reminders
+        if: always() && github.event_name == 'schedule'
+        run: python src/followups.py
       - name: Upload run report
         if: always()
         uses: actions/upload-artifact@v4
