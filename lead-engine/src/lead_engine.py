@@ -15,6 +15,8 @@ from telegram_notify import notify_lead, notify_summary
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = ROOT / "config.json"
+TERMINAL_STATUSES = {"WON", "LOST"}
+EARLY_STATUSES = {"", "NEW", "REVIEW", "READY", "SKIP"}
 
 
 def env_bool(name: str, default: bool = False) -> bool:
@@ -31,6 +33,24 @@ def require_env(name: str) -> str:
     if not value:
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
+
+
+def existing_status(page: dict | None) -> str:
+    if not page:
+        return ""
+    try:
+        return page["properties"]["Status"]["select"]["name"] or ""
+    except (KeyError, TypeError):
+        return ""
+
+
+def existing_checkbox(page: dict | None, property_name: str) -> bool:
+    if not page:
+        return False
+    try:
+        return bool(page["properties"][property_name]["checkbox"])
+    except (KeyError, TypeError):
+        return False
 
 
 def fingerprint(place: dict, site: dict) -> str:
@@ -80,6 +100,7 @@ def main() -> int:
     updated_count = 0
     high_count = 0
     duplicate_count = 0
+    suppressed_count = 0
     tg = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     chat = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 
@@ -88,6 +109,10 @@ def main() -> int:
             continue
 
         existing = lead_exists(notion_token, notion_ds, place.get("place_id") or "") if notion_token and notion_ds else None
+        old_status = existing_status(existing)
+        if existing and (existing_checkbox(existing, "Do Not Contact") or old_status in TERMINAL_STATUSES):
+            suppressed_count += 1
+            continue
         if existing and not refresh:
             duplicate_count += 1
             continue
@@ -139,7 +164,8 @@ def main() -> int:
 
         if analysis["score"] >= threshold:
             high_count += 1
-            if tg and chat:
+            became_hot = not existing or (old_status in EARLY_STATUSES and old_status != "READY")
+            if tg and chat and became_hot:
                 notify_lead(tg, chat, place, analysis, notion_page.get("url", "") if notion_page else "")
 
         if index < len(places):
@@ -156,6 +182,7 @@ def main() -> int:
         "updated_leads": updated_count,
         "high_score": high_count,
         "skipped_duplicates": duplicate_count,
+        "suppressed": suppressed_count,
         "results": output,
     }
     out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -169,7 +196,7 @@ def main() -> int:
             new_leads=new_count,
             updated_leads=updated_count,
             high_score=high_count,
-            skipped_duplicates=duplicate_count,
+            skipped_duplicates=duplicate_count + suppressed_count,
         )
 
     print(json.dumps({
@@ -179,6 +206,7 @@ def main() -> int:
         "updated_leads": updated_count,
         "high_score": high_count,
         "duplicates": duplicate_count,
+        "suppressed": suppressed_count,
         "dry_run": dry_run,
         "output": str(out),
     }, ensure_ascii=False))
