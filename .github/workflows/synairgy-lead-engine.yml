@@ -1,0 +1,73 @@
+name: SynAirgy Lead Engine
+
+on:
+  schedule:
+    - cron: '10 9 * * 1-5'
+      timezone: 'Europe/Berlin'
+  workflow_dispatch:
+    inputs:
+      query:
+        description: 'Optional Google Places query override'
+        required: false
+        type: string
+      limit:
+        description: 'Number of places to inspect (1-20)'
+        required: false
+        default: '20'
+        type: string
+      dry_run:
+        description: 'Analyze without writing to Notion'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: synairgy-lead-engine
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: lead-engine
+    env:
+      GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
+      NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+      NOTION_DATA_SOURCE_ID: ${{ secrets.NOTION_DATA_SOURCE_ID }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      LEAD_QUERY: ${{ inputs.query }}
+      LEAD_LIMIT: ${{ inputs.limit }}
+      DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+      OUTPUT_PATH: out/results.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: lead-engine/requirements.txt
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Tests
+        run: python -m unittest discover -s tests -p 'test_*.py'
+      - name: Run lead engine
+        run: python src/lead_engine.py
+      - name: Upload run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synairgy-lead-engine-report-${{ github.run_number }}
+          path: lead-engine/out/results.json
+          if-no-files-found: warn
+          retention-days: 14

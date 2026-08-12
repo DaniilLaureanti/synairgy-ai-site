@@ -1,0 +1,19 @@
+{
+  "city": "Hamburg",
+  "language_code": "de",
+  "region_code": "DE",
+  "active_niche": "barbershop",
+  "niches": {
+    "barbershop": {"query": "Barbershop in Hamburg"},
+    "beauty": {"query": "Kosmetikstudio in Hamburg"},
+    "fitness": {"query": "Fitnessstudio in Hamburg"},
+    "restaurant": {"query": "Restaurant in Hamburg"}
+  },
+  "page_size": 20,
+  "max_pages": 1,
+  "lead_threshold": 75,
+  "review_threshold": 55,
+  "website_max_chars": 12000,
+  "website_timeout_seconds": 10,
+  "request_delay_seconds": 0.35
+}
