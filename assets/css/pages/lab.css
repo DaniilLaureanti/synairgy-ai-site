@@ -1,0 +1,8 @@
+.cta-panel { text-align: center; padding: 50px 24px; }
+.cta-panel .section-copy { margin: 0 auto 24px; }
+@media (max-width: 480px) {
+  .cta-panel { padding: 34px 18px; }
+  .builder, .hero-grid, .problem { min-width: 0; }
+  .brief, .builder-box, .panel, .service, .price-card, .package { min-width: 0; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+}

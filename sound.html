@@ -8,8 +8,13 @@
 <meta property="og:title" content="SynAirgy Record’s — от первой фразы до релиза">
 <meta property="og:description" content="Полный цикл музыкального продакшна в Гамбурге и онлайн по Европе.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://synairgy.ai/sound.html">
+<link rel="canonical" href="https://synairgy.ai/sound.html">
 <title>SynAirgy Record’s — от первой фразы до релиза</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%23070b09%22/><path d=%22M15 42V22h7l10 11V22h7v20h-7L22 31v11z%22 fill=%22%2359f45f%22/><circle cx=%2248%22 cy=%2232%22 r=%226%22 fill=%22%23d9ff5f%22/></svg>">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="synairgy-1.css">
 <link rel="stylesheet" href="synairgy-2.css">
 <link rel="stylesheet" href="synairgy-3.css">
@@ -185,7 +190,7 @@
 <section class="section" id="contact">
 <div class="container cta">
 <div><h2>Готов записать <span class="green">первую фразу?</span></h2><p>Опиши идею в двух предложениях или просто выбери услуги в калькуляторе. Мы соберём маршрут, объясним, что действительно нужно, и не будем продавать лишние этапы.</p></div>
-<div class="cta-actions"><button class="btn btn-primary" data-open-order>Собрать свой пакет →</button><a class="btn btn-ghost" href="https://www.instagram.com/synairgy.space/" target="_blank" rel="noopener">Написать в Instagram</a></div>
+<div class="cta-actions"><button class="btn btn-primary" data-open-order>Собрать свой пакет →</button><a class="btn btn-ghost" href="https://www.instagram.com/synairgy.space/" data-link="social.instagram" target="_blank" rel="noopener noreferrer">Написать в Instagram</a></div>
 </div>
 </section>
 </main>
@@ -195,7 +200,7 @@
 <div><a class="logo" href="#top">Syn<span>Airgy</span><small>RECORD’S</small></a><p class="muted" style="font-size:.82rem;max-width:320px">Музыкальный лейбл полного цикла: идея, продакшн, запись, постпродакшн, визуал и публикация.</p></div>
 <div><h4>Услуги</h4><div class="footer-links"><a href="#services">Запись и продакшн</a><a href="#services">Сведение и мастеринг</a><a href="#rights">Права и публикация</a><a href="#media">Фото и видео</a></div></div>
 <div><h4>Студия</h4><div class="footer-links"><a href="#gear">Оборудование</a><a href="#mics">Микрофоны</a><a href="#workflow">Процесс</a><a href="#packages">Пакеты</a></div></div>
-<div><h4>Контакты</h4><div class="footer-links"><a href="https://www.instagram.com/synairgy.space/" target="_blank" rel="noopener">Instagram @synairgy.space</a><span>Hamburg, Germany</span><span>Online по Европе</span></div></div>
+<div><h4>Контакты</h4><div class="footer-links"><a href="https://www.instagram.com/synairgy.space/" data-link="social.instagram" target="_blank" rel="noopener noreferrer">Instagram @synairgy.space</a><span>Hamburg, Germany</span><span>Online по Европе</span></div></div>
 </div>
 <div class="footer-bottom"><span>© <span id="year"></span> SynAirgy Record’s. Все права защищены.</span><span>Цены на сайте ориентировочные. Финальная смета и объём прав фиксируются договором.</span></div>
 </div>
@@ -211,10 +216,11 @@
 <div class="field full"><label for="clientIdea">Что хочешь сделать</label><textarea id="clientIdea" placeholder="Можно просто: хочу записать первый трек, пока есть только настроение и пара строк"></textarea></div>
 </div>
 <div class="request-preview" id="requestPreview"></div>
-<div class="modal-actions" style="margin-top:14px"><button class="btn btn-primary" id="copyRequest">Скопировать заявку</button><button class="btn btn-ghost" id="shareRequest">Поделиться</button><a class="btn btn-ghost" href="https://www.instagram.com/synairgy.space/" target="_blank" rel="noopener" id="instagramRequest">Открыть Instagram</a></div>
+<div class="modal-actions" style="margin-top:14px"><button class="btn btn-primary" id="copyRequest">Скопировать заявку</button><button class="btn btn-ghost" id="shareRequest">Поделиться</button><a class="btn btn-ghost" href="https://www.instagram.com/synairgy.space/" data-link="social.instagram" target="_blank" rel="noopener noreferrer" id="instagramRequest">Открыть Instagram</a></div>
 </div>
 </div>
 <div class="toast" id="toast">Готово</div>
+<script type="module" src="assets/js/core.js"></script>
 <script src="synairgy-1.js"></script>
 <script src="synairgy-2.js"></script>
 <script src="synairgy-3.js"></script>

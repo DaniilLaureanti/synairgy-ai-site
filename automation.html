@@ -8,12 +8,18 @@
 <meta property="og:title" content="SynAirgy AI & Automation Lab">
 <meta property="og:description" content="Сайты, AI-ассистенты, агенты, автоматизация, RAG и custom digital products.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://synairgy.ai/automation.html">
+<link rel="canonical" href="https://synairgy.ai/automation.html">
 <title>SynAirgy AI & Automation Lab</title>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="brand-system.css">
 <link rel="stylesheet" href="ai-pricing.css">
+<link rel="stylesheet" href="assets/css/pages/lab.css">
 </head>
 <body>
-<header class="nav"><div class="nav-inner"><a class="brand" href="/">Syn<span>Airgy</span><small>AI & AUTOMATION LAB</small></a><nav class="nav-links"><a href="#services">Возможности</a><a href="#prices">Цены</a><a href="#process">Процесс</a><a href="#builder">Собрать проект</a><a href="#packages">Форматы</a></nav><a class="back" href="/">← Все лаборатории</a></div></header>
+<header class="nav" data-nav-root><div class="nav-inner"><a class="brand" href="/">Syn<span>Airgy</span><small>AI & AUTOMATION LAB</small></a><nav class="nav-links" data-nav-menu aria-label="Основная навигация"><a href="#services">Возможности</a><a href="#prices">Цены</a><a href="#process">Процесс</a><a href="#builder">Собрать проект</a><a href="#packages">Форматы</a></nav><button class="mobile-nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="Открыть меню">☰</button><a class="back" href="/">← Все лаборатории</a></div></header>
 <main>
 <section class="hero"><div class="container hero-grid"><div><div class="eyebrow">03 · AI & AUTOMATION LAB</div><h1>Собираем системы,<br><span>которые работают.</span></h1><p class="lead">Сайты, AI-ассистенты, агенты, боты, автоматизация, базы знаний, интеграции и внутренние инструменты. Не продаём «AI ради AI» — сначала находим задачу, потом строим систему, которая экономит время, ускоряет работу или создаёт новый продукт.</p><div class="hero-actions"><a class="btn btn-primary" href="#builder">Собрать проект →</a><a class="btn" href="#prices">Посмотреть цены</a></div><div class="hero-meta"><span class="meta-pill">AI Agents</span><span class="meta-pill">Web</span><span class="meta-pill">Automation</span><span class="meta-pill">RAG</span><span class="meta-pill">API</span></div></div><div class="hero-panel"><div class="terminal"><div class="row"><b>INPUT</b> → заявка с сайта</div><div class="row"><b>AI</b> → классификация запроса</div><div class="row"><b>CRM</b> → создание лида</div><div class="row"><b>AGENT</b> → подготовка ответа</div><div class="row"><b>AUTOMATION</b> → письмо + задача + уведомление</div><div class="row"><b>RESULT</b> → процесс выполнен без ручной рутины</div></div><div class="stats"><div class="stat"><strong>24/7</strong><span>системы могут работать без пауз</span></div><div class="stat"><strong>1→N</strong><span>один процесс масштабируется</span></div><div class="stat"><strong>API</strong><span>соединяем сервисы между собой</span></div></div></div></div></section>
 
@@ -60,14 +66,10 @@
 </div></div></section>
 
 <section class="section"><div class="container"><div class="eyebrow">CROSS-LAB</div><div class="cross"><a class="cross-card" href="visual.html"><strong>Film & Visual Lab →</strong><p>Если продукту нужны съёмка, контент, реклама, визуал или drone.</p></a><a class="cross-card" href="sound.html"><strong>Sound Lab →</strong><p>Если системе нужны voice-over, музыка, запись голоса или sound design.</p></a></div></div></section>
-<section class="cta"><div class="container"><div class="panel" style="text-align:center;padding:50px 24px"><div class="eyebrow">START WITH THE PROBLEM</div><h2 class="section-title">Не знаешь технологию — <span>не нужно.</span></h2><p class="section-copy" style="margin:0 auto 24px">Опиши, что сейчас делается вручную, медленно или неудобно. Архитектуру можно собрать уже после.</p><a class="btn btn-primary" href="#builder">Собрать проект →</a></div></div></section>
+<section class="cta"><div class="container"><div class="panel cta-panel"><div class="eyebrow">START WITH THE PROBLEM</div><h2 class="section-title">Не знаешь технологию — <span>не нужно.</span></h2><p class="section-copy">Опиши, что сейчас делается вручную, медленно или неудобно. Архитектуру можно собрать уже после.</p><a class="btn btn-primary" href="#builder">Собрать проект →</a></div></div></section>
 </main>
-<footer class="footer"><div class="footer-inner"><span>© 2026 SynAirgy AI & Automation Lab</span><a href="/">Все лаборатории</a></div></footer>
-<script>
-const single=(root,render)=>{const b=[...root.querySelectorAll('.choice')];b.forEach(x=>x.onclick=()=>{b.forEach(y=>y.classList.remove('active'));x.classList.add('active');render()})};const multi=(root,render)=>{[...root.querySelectorAll('.choice')].forEach(x=>x.onclick=()=>{x.classList.toggle('active');render()})};
-const typeRoot=document.getElementById('aiType'),extrasRoot=document.getElementById('aiExtras'),out=document.getElementById('aiBrief');single(typeRoot,renderAi);multi(extrasRoot,renderAi);
-function renderAi(){const type=typeRoot.querySelector('.active')?.dataset.value||'Не выбран';const extras=[...extrasRoot.querySelectorAll('.active')].map(x=>x.dataset.value);out.textContent=`SYNAIRGY · AI & AUTOMATION LAB\n\nЧто строим: ${type}\nИнтеграции / данные: ${extras.length?extras.join(', '):'обсудить после разбора'}\n\nПроблема сейчас: ____________________\nЧто должно происходить автоматически: ____________________\nКакие данные / сервисы уже есть: ____________________\nСрок / приоритет: ____________________\n\nНужна консультация по архитектуре.`}
-renderAi();document.getElementById('copyAi').onclick=async()=>{try{await navigator.clipboard.writeText(out.textContent);document.getElementById('aiOk').textContent='Скопировано.'}catch(e){document.getElementById('aiOk').textContent='Выдели текст и скопируй вручную.'}}
-</script>
+<footer class="footer"><div class="footer-inner"><span>© <span data-current-year>2026</span> SynAirgy AI & Automation Lab</span><a href="/">Все лаборатории</a></div></footer>
+<script type="module" src="assets/js/core.js"></script>
+<script type="module" src="assets/js/automation.js"></script>
 </body>
 </html>

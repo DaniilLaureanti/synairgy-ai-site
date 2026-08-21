@@ -8,15 +8,21 @@
 <meta property="og:title" content="SynAirgy — Creative Production & AI Systems">
 <meta property="og:description" content="Sound, Film & Visual, AI & Automation — три лаборатории в одной экосистеме.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://synairgy.ai/">
+<link rel="canonical" href="https://synairgy.ai/">
 <title>SynAirgy — Creative Production & AI Systems</title>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="brand-system.css">
 </head>
 <body>
-<header class="top">
+<header class="top" data-nav-root>
   <div class="top-inner">
     <a class="brand" href="/">Syn<span>Airgy</span><small>CREATIVE PRODUCTION & AI SYSTEMS</small></a>
     <div class="nav-right">
-      <nav class="top-nav"><a href="#labs">Лаборатории</a><a href="#ecosystem">Экосистема</a><a href="#approach">Подход</a></nav>
+      <nav class="top-nav" data-nav-menu aria-label="Основная навигация"><a href="#labs">Лаборатории</a><a href="#ecosystem">Экосистема</a><a href="#approach">Подход</a></nav>
+      <button class="mobile-nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="Открыть меню">☰</button>
       <span class="status"><span class="pulse"></span>Hamburg / Online</span>
     </div>
   </div>
@@ -87,6 +93,7 @@
     <a class="home-btn primary" href="#labs">Открыть лаборатории →</a>
   </section>
 </main>
-<footer class="footer"><div class="footer-inner"><span>© 2026 SynAirgy</span><span>Sound · Film & Visual · AI & Automation</span></div></footer>
+<footer class="footer"><div class="footer-inner"><span>© <span data-current-year>2026</span> SynAirgy</span><span>Sound · Film & Visual · AI & Automation</span></div></footer>
+<script type="module" src="assets/js/core.js"></script>
 </body>
 </html>
