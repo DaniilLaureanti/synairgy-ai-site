@@ -7,6 +7,7 @@ The project intentionally stays buildless: GitHub Pages serves semantic HTML, la
 - `assets/css/tokens.css` — brand tokens and reusable design values.
 - `assets/css/base.css` — reset, accessibility, responsive media and reduced-motion rules.
 - `assets/css/components.css` — shared navigation and reusable UI behavior.
+- `assets/css/components/work-showcase.css` — reusable responsive video portfolio block.
 - `brand-system.css` — the existing SynAirgy visual language for home, Film & Visual and AI pages.
 - `assets/css/pages/` — page-specific exceptions only.
 - `assets/js/config.js` — the single source for routes, contacts and social links.
