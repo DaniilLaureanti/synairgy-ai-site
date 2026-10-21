@@ -1,67 +1,124 @@
-# SynAirgy Lead Engine
+# SynAirgy Lead Engine v2
 
-Internal lead-discovery engine for SynAirgy.
+A resumable commercial workflow built on the existing SynAirgy Python project.
+The public marketing website is preserved; this is not the Crosspost project.
 
-## What it does
+## What works
 
-`Google Places → public business website → evidence extraction → OpenAI qualification → Notion CRM → Telegram`
+- Google Places discovery or explicit JSON seed import.
+- Public-site evidence extraction with bounded, IP-pinned HTTP requests.
+- OpenAI Responses API qualification with Structured Outputs and bounded usage.
+- Local durable CRM, job queue, event history, dead-letter/blocked states.
+- Private HTML concepts and email drafts.
+- Verified-recipient SMTP outbox, optional automatic approval, daily limits,
+  two follow-ups, reply cancellation and persistent opt-outs.
+- One-time Stripe Checkout with server-side catalog prices and idempotency.
+- Signature-verified completed/async payment webhooks and private ZIP packages.
+- Authenticated FastAPI control plane, CLI, Docker/Compose and CI.
 
-It **does not send cold email or automated sales messages**. It automates discovery, analysis, scoring, CRM entry, and notifications; the actual outreach remains manual.
+This is a tested **application contour**, not a live revenue guarantee.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for guarantees and explicit limitations.
+Domain/DNS deployment, mailbox ingestion, autonomous calls/social messages,
+free-form AI negotiation and subscriptions are not implemented in this release.
+Only the Landing product has an automatic package-generation adapter.
 
-## Default operating mode
+## Local verification
 
-- City: Hamburg
-- Initial niche: barbershops
-- 20 businesses per weekday run
-- Only scores ≥ 75 are pushed as hot leads
-- Schedule: 09:10 Europe/Berlin, Monday–Friday
-- Duplicate detection: Google Place ID in Notion
+Python 3.12:
 
-## Required GitHub Actions secrets
+```sh
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+PYTHONPATH=src python -m synairgy.cli doctor
+```
 
-Repository → Settings → Secrets and variables → Actions:
+The tests use synthetic `.example` businesses and fake providers. They make no
+OpenAI, SMTP or Stripe calls and charge nothing.
 
-- `GOOGLE_PLACES_API_KEY`
-- `OPENAI_API_KEY`
-- `NOTION_TOKEN`
-- `NOTION_DATA_SOURCE_ID`
+## Run
 
-Optional:
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
+Set runtime secrets through your deployment's secret store or an ignored local
+env file. The program reads environment variables; it does not auto-load env
+files. Use the confirmed OpenAI key file only in your shell/runtime, never Git.
 
-Optional repository variable:
-- `OPENAI_MODEL` (defaults to `gpt-5-mini`)
+```sh
+export PYTHONPATH=src
+python -m synairgy.cli doctor
+python -m synairgy.cli serve
+```
 
-## Notion
+`ADMIN_TOKEN` must contain at least 32 random characters before the server starts.
+By default it binds to `127.0.0.1:8000`. Configure TLS before public access.
 
-Create a Notion integration/token with the minimum needed content permissions, then share **SynAirgy Leads CRM** with that connection. Use the CRM's data source ID for `NOTION_DATA_SOURCE_ID`.
+Other commands:
 
-The engine writes Company/Status/Score, Offer/Price, Website/Instagram/phone/address, Problem/Evidence/Why Now, Opening/Call Script, Contact Channel, Legal Relevance, Place ID and fingerprint.
+```sh
+python -m synairgy.cli discover --query 'Barbershop in Hamburg' --limit 5
+python -m synairgy.cli discover --seeds /absolute/path/leads.json --limit 5
+python -m synairgy.cli worker --max-jobs 20
+python -m synairgy.cli worker --loop
+python -m synairgy.cli send
+python -m synairgy.cli status
+python -m synairgy.cli retry JOB_ID
+python -m synairgy.cli reconcile-sends
+```
 
-## Google Places
+A seed record must include a real company name plus website or address. A seed
+file is a JSON list; supplying an email does not automatically verify it.
 
-Enable Places API (New) and create a restricted API key. The engine uses Text Search (New) with a production field mask instead of `*`.
+Missing credentials produce a machine-readable `blocked` summary, not a traceback
+or a pretend successful discovery. `doctor` reports configuration presence only;
+it does not claim that the provider has balance, scopes, or healthy service.
 
-## OpenAI
+## Control API
 
-The engine calls the Responses API with Structured Outputs. The model must return a strict JSON schema, which prevents brittle free-text parsing. It is instructed to use only supplied evidence, choose one problem and one offer, and never automate cold outreach.
+All `/api/*` endpoints require `Authorization: Bearer ADMIN_TOKEN`.
 
-## First safe run
+- `GET /api/readiness`, `/api/leads`, `/api/jobs`, `/api/messages`, `/api/orders`, `/api/activity`
+- `POST /api/leads`: name, website/address, optional email and verified_contact.
+- `POST /api/discover`: query, limit.
+- `POST /api/worker/tick`, `/api/outreach/tick`
+- `POST /api/leads/{id}/verify-contact`: email.
+- `POST /api/messages/{id}/approve`
+- `POST /api/leads/{id}/reply`: email, interested.
+- `POST /api/leads/{id}/checkout`: request_key.
+- `POST /api/suppress`: email.
+- `POST /api/jobs/{id}/retry`
 
-GitHub → Actions → `SynAirgy Lead Engine` → Run workflow:
-- dry_run = true
-- query = `Barbershop in Hamburg`
-- limit = `5`
+The reply endpoint must be fed by an authenticated sender-verifying mailbox
+adapter or the owner. It is not an unauthenticated public email webhook.
 
-Inspect the uploaded results artifact. Then run again with dry_run off.
+Public, restricted endpoints:
 
-## Tuning
+- `GET /healthz`: no secrets or operational details.
+- `GET /preview/{unguessable_token}`
+- `GET /delivery/{unguessable_token}/{order_id}`
+- `GET /unsubscribe/{token}`: confirmation only (safe for link scanners).
+- `POST /unsubscribe/{token}`: durable suppression, including one-click POST.
+- `POST /webhooks/stripe`: raw body, Stripe signature required.
+- Payment return pages: display only; never authorize delivery.
 
-Do not rotate all niches in the first week. Keep one niche long enough to measure:
+## Runtime environment
 
-`discovered → READY → contacted → interested → meeting → offer → won`
+See [.env.example](.env.example). Defaults are non-sending, non-live.
+Use a restricted Stripe API key with only required Checkout/Product/Price
+permissions, plus a separate webhook signing secret. Test with an isolated
+Stripe sandbox first. Do not put these secrets in the public repository.
 
-## Germany outreach guardrail
+The original catalog prices are retained. No tax automation is silently
+enabled: confirm tax registration, final price presentation and invoices before
+taking real orders.
 
-The engine deliberately does not automate cold advertising messages. Before a manual B2B call, use `Legal Relevance` as a reminder to verify the concrete business context. If a business objects, stop contacting it. This is an operational guardrail, not legal advice.
+## Automation / storage
+
+GitHub Actions runs tests on changes. Production scheduling is inactive until
+`ENGINE_ENABLED=1`, `LEAD_ENGINE_URL` and `LEAD_ENGINE_ADMIN_TOKEN` are configured.
+It calls a persistent server and does not try to keep a CRM database on a
+disposable GitHub runner. Manual workflow runs default to readiness-only.
+
+Use `docker compose up -d --build` with an ignored `.env.local` and a persistent
+volume. Configure a reverse proxy/TLS separately. Never expose the SQLite file
+or the `data/` folder as a static directory. Back up and restore-test that volume.
+
+Legacy Notion/Telegram scripts remain in `src/` for compatibility but are not
+required or implicitly invoked by the new engine.

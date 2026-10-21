@@ -1,48 +1,76 @@
 from __future__ import annotations
 
 import re
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlsplit
 from urllib.robotparser import RobotFileParser
-import requests
+
 from bs4 import BeautifulSoup
 
-USER_AGENT="SynAirgyLeadEngine/0.1 (+https://synairgy.ai)"
-BOOKING_HINTS=("termin","booking","book","reserve","reservation","appointment","calendly","treatwell","planity","fresha","shore.com","opentable","quandoo")
-VIDEO_HOSTS=("youtube.com","youtu.be","vimeo.com","tiktok.com")
+from synairgy.safe_http import USER_AGENT, get_public
 
-def _valid_public_url(url:str)->bool:
-    try:
-        parsed=urlparse(url); return parsed.scheme in {"http","https"} and bool(parsed.netloc)
-    except Exception: return False
+BOOKING_HINTS = ("termin", "booking", "reserve", "reservation", "appointment", "calendly", "treatwell", "planity", "fresha", "shore.com", "opentable", "quandoo")
+VIDEO_HOSTS = ("youtube.com", "youtu.be", "vimeo.com", "tiktok.com")
 
-def _robots_allows(url:str)->bool:
+
+def _valid_public_url(url: str) -> bool:
     try:
-        parsed=urlparse(url); robots_url=f"{parsed.scheme}://{parsed.netloc}/robots.txt"
-        response=requests.get(robots_url,headers={"User-Agent":USER_AGENT},timeout=5)
-        if response.status_code>=400: return True
-        rp=RobotFileParser(); rp.set_url(robots_url); rp.parse(response.text.splitlines()); return rp.can_fetch(USER_AGENT,url)
+        p = urlsplit(url)
+        return p.scheme in {"http", "https"} and bool(p.hostname) and not (p.username or p.password)
+    except ValueError:
+        return False
+
+
+def _robots_allows(url: str) -> bool:
+    parsed = urlsplit(url)
+    try:
+        status, _, raw, final = get_public(f"{parsed.scheme}://{parsed.netloc}/robots.txt", 5)
+        if status in {404, 410}:
+            return True
+        if status >= 400:
+            return False
+        robots = RobotFileParser()
+        robots.set_url(final)
+        robots.parse(raw.decode("utf-8", errors="replace").splitlines())
+        return robots.can_fetch(USER_AGENT, url)
     except Exception:
-        return True
+        return False
 
-def inspect_site(url:str,*,max_chars:int=12000,timeout:int=10)->dict:
-    empty={"reachable":False,"status_code":None,"title":"","meta_description":"","text":"","instagram":"","phone":"","email":"","signals":{"has_instagram_link":False,"has_contact_form":False,"has_online_booking":False,"has_whatsapp":False,"has_video":False,"image_count":0,"video_count":0},"error":""}
-    if not url or not _valid_public_url(url): empty["error"]="missing_or_invalid_url"; return empty
-    if not _robots_allows(url): empty["error"]="robots_disallow"; return empty
+
+def inspect_site(url: str, *, max_chars: int = 12000, timeout: int = 10) -> dict:
+    result = {"reachable": False, "status_code": None, "title": "", "meta_description": "", "text": "", "instagram": "", "phone": "", "email": "", "signals": {}, "error": ""}
+    if not url or not _valid_public_url(url):
+        result["error"] = "missing_or_invalid_url"
+        return result
+    if not _robots_allows(url):
+        result["error"] = "robots_disallow_or_unavailable"
+        return result
     try:
-        response=requests.get(url,headers={"User-Agent":USER_AGENT,"Accept":"text/html,application/xhtml+xml"},timeout=timeout,allow_redirects=True,stream=True); empty["status_code"]=response.status_code; response.raise_for_status()
-        if "html" not in (response.headers.get("Content-Type") or "").lower(): empty["error"]="non_html"; return empty
-        raw=response.content[:2_000_000]; soup=BeautifulSoup(raw,"html.parser")
-        for tag in soup(["script","style","noscript","svg"]): tag.decompose()
-        title=soup.title.get_text(" ",strip=True) if soup.title else ""
-        meta=soup.find("meta",attrs={"name":re.compile("^description$",re.I)}); description=meta.get("content","").strip() if meta else ""
-        hrefs=[]
-        for a in soup.find_all("a",href=True): hrefs.append(urljoin(response.url,a.get("href","").strip()))
-        instagram=next((h for h in hrefs if "instagram.com" in h.lower()),"")
-        tel=next((h[4:] for h in hrefs if h.lower().startswith("tel:")),"")
-        email=next((h[7:].split("?")[0] for h in hrefs if h.lower().startswith("mailto:")),"")
-        lower_links=" ".join(hrefs).lower(); has_contact_form=bool(soup.find_all("form")); has_online_booking=any(h in lower_links for h in BOOKING_HINTS); has_whatsapp="wa.me/" in lower_links or "whatsapp" in lower_links
-        iframe_srcs=[(i.get("src") or "").lower() for i in soup.find_all("iframe") if i.get("src")]; video_count=len(soup.find_all("video")); has_video=video_count>0 or any(host in src for src in iframe_srcs for host in VIDEO_HOSTS); image_count=len(soup.find_all("img"))
-        text=re.sub(r"\s+"," "," ".join(soup.stripped_strings)).strip()[:max_chars]
-        return {"reachable":True,"status_code":response.status_code,"final_url":response.url,"title":title[:300],"meta_description":description[:600],"text":text,"instagram":instagram[:1000],"phone":tel[:120],"email":email[:320],"signals":{"has_instagram_link":bool(instagram),"has_contact_form":has_contact_form,"has_online_booking":has_online_booking,"has_whatsapp":has_whatsapp,"has_video":has_video,"image_count":image_count,"video_count":video_count},"error":""}
-    except requests.RequestException as exc: empty["error"]=f"http_error:{type(exc).__name__}"; return empty
-    except Exception as exc: empty["error"]=f"parse_error:{type(exc).__name__}"; return empty
+        status, content_type, raw, final = get_public(url, timeout)
+        result["status_code"] = status
+        if status >= 400 or "html" not in content_type.lower():
+            result["error"] = "http_error_or_non_html"
+            return result
+        soup = BeautifulSoup(raw, "html.parser")
+        for tag in soup(["script", "style", "noscript", "svg"]):
+            tag.decompose()
+        links = [urljoin(final, a["href"].strip()) for a in soup.find_all("a", href=True)]
+        instagram = next((h for h in links if (urlsplit(h).hostname or "").lower() in {"instagram.com", "www.instagram.com"}), "")
+        phone = next((h[4:] for h in links if h.lower().startswith("tel:")), "")
+        email = next((h[7:].split("?")[0] for h in links if h.lower().startswith("mailto:")), "")
+        meta = soup.find("meta", attrs={"name": re.compile("^description$", re.I)})
+        iframes = [i.get("src", "").lower() for i in soup.find_all("iframe")]
+        result.update({
+            "reachable": True, "final_url": final,
+            "title": soup.title.get_text(" ", strip=True)[:300] if soup.title else "",
+            "meta_description": str(meta.get("content", ""))[:600] if meta else "",
+            "text": re.sub(r"\s+", " ", soup.get_text(" ", strip=True))[:max_chars],
+            "instagram": instagram[:1000], "phone": phone[:120], "email": email[:254],
+            "signals": {"has_instagram_link": bool(instagram), "has_contact_form": bool(soup.find("form")),
+                        "has_online_booking": any(h in " ".join(links).lower() for h in BOOKING_HINTS),
+                        "has_whatsapp": any("wa.me/" in h or "whatsapp" in h.lower() for h in links),
+                        "has_video": bool(soup.find("video")) or any(h in src for h in VIDEO_HOSTS for src in iframes),
+                        "image_count": len(soup.find_all("img")), "video_count": len(soup.find_all("video"))},
+        })
+    except Exception as exc:
+        result["error"] = f"inspection_failed:{type(exc).__name__}"
+    return result
