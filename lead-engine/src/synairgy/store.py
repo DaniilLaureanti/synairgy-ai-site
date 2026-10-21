@@ -16,7 +16,7 @@ from sqlalchemy import text
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from .domain import BusinessError, Stage, backoff, email_address, identity, transition
-from .models import Activity, DailyCounter, Job, Lead, Message, SchemaVersion, Suppression, uid
+from .models import Activity, Attribution, Campaign, DailyCounter, Job, Lead, Message, Suppression, uid
 
 
 class Store:
@@ -26,13 +26,27 @@ class Store:
         if database_url != "sqlite:///:memory:":
             Path(database_url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
         self.engine = create_engine(database_url, connect_args={"check_same_thread": False, "timeout": 30})
-        SQLModel.metadata.create_all(self.engine)
-        with self.transaction() as s:
-            versions = s.exec(select(SchemaVersion)).all()
-            if versions and max(v.version for v in versions) != 1:
-                raise RuntimeError("Unsupported database schema; migration required")
-            if not versions:
-                s.add(SchemaVersion(version=1))
+        self._migrate()
+
+    def _migrate(self):
+        # v1 -> v2 is additive only. Check BEFORE DDL, serialize concurrent starts,
+        # and commit new tables plus the version marker in one transaction.
+        with self.engine.connect() as conn:
+            conn.exec_driver_sql("BEGIN IMMEDIATE")
+            try:
+                exists = conn.exec_driver_sql("SELECT name FROM sqlite_master WHERE type='table' AND name='schemaversion'").first()
+                versions = list(conn.exec_driver_sql("SELECT version FROM schemaversion").scalars()) if exists else []
+                if versions and versions not in ([1], [2]):
+                    raise RuntimeError("Unsupported database schema; migration required")
+                SQLModel.metadata.create_all(conn)
+                if versions == [1]:
+                    conn.exec_driver_sql("UPDATE schemaversion SET version=2 WHERE version=1")
+                elif not versions:
+                    conn.exec_driver_sql("INSERT INTO schemaversion(version) VALUES (2)")
+                conn.commit()
+            except BaseException:
+                conn.rollback()
+                raise
 
     @contextmanager
     def transaction(self):
@@ -71,13 +85,15 @@ class Store:
             lead.stage = target
             s.add(lead)
 
-    def add_lead(self, place: dict, *, verified_contact: bool = False) -> tuple[Lead, bool]:
+    def add_lead(self, place: dict, *, verified_contact: bool = False, campaign_id: str = "") -> tuple[Lead, bool]:
         key = identity(place)
         email = email_address(place["email"]) if place.get("email") else ""
         with self.transaction() as s:
             found = s.exec(select(Lead).where(Lead.identity_key == key)).first()
             if found:
                 return found, False
+            if campaign_id and not s.get(Campaign, campaign_id):
+                raise BusinessError("Unknown campaign")
             suppressed = bool(email and s.get(Suppression, email))
             lead = Lead(
                 identity_key=key,
@@ -90,6 +106,8 @@ class Store:
             )
             s.add(lead)
             s.flush()
+            if campaign_id:
+                s.add(Attribution(lead_id=lead.id, campaign_id=campaign_id))
             if not suppressed:
                 self.enqueue(s, lead.id, "inspect")
             s.add(Activity(lead_id=lead.id, kind="lead_created"))

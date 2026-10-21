@@ -17,6 +17,11 @@ site and its existing URLs/assets are unchanged. This is separate from Crosspost
 7. `billing.py`: server-priced Checkout and signature-verified payment ingestion.
 8. `api.py`, `cli.py`: authenticated composition roots and operations.
 9. `schedule.py`: GitHub schedules call the persistent runtime, not an ephemeral DB.
+10. `research.py`: bounded web research and structured source-linked hypotheses.
+11. `portfolio.py`: mature cohorts, money attribution and immutable allocation plans.
+
+Sector selection now precedes discovery. See [PORTFOLIO.md](PORTFOLIO.md) for the
+70/30 policy, measurement boundary and accounting dependencies.
 
 The existing catalog is the only price source. Qualification thresholds remain
 in `config.json`. Agents cannot change prices or decide that payment happened.
@@ -56,9 +61,11 @@ microservices before this requirement exists would add distributed failure modes
 - Persist `data/` on a real disk/volume and back up the entire directory (DB,
   previews and delivery files). Use SQLite's backup API or stop the process for
   consistent backups. Test restores before production.
-- Database schema version 1 is recorded; unknown versions fail closed. Future
-  schema changes require explicit migration and restore tests, not `create_all`
-  as a substitute for migrations.
+- Database schema version 2 adds portfolio tables without changing v1 records.
+  Startup explicitly accepts only new databases or versions 1/2, serializes the
+  additive migration, and commits the DDL/version marker together. Unknown
+  versions fail before DDL. Migration and SQLite backup/restore tests cover v1
+  lead preservation. Keep a consistent backup before upgrading production.
 - Never commit runtime data, keys or lead records. The repository is public.
   GitHub Actions uploads no CRM database or detailed prospect report.
 - Public-web scraping rejects private/reserved IPs, pins the checked IP for the
@@ -93,6 +100,13 @@ Also not implemented: autonomous phone calls, Instagram/LinkedIn messaging,
 automatic mailbox ingestion, free-form AI negotiation, recurring subscriptions,
 cross-platform revenue optimization and a customer-facing portal. The `/reply`
 endpoint is an authenticated ingestion boundary, not a mailbox reader.
+
+Market research is an API adapter, not pre-populated current market knowledge.
+Model ratings remain hypotheses even when a source URL was retrieved. Accounting
+imports/attestations require an authenticated adapter or owner: processor fees,
+refunds, taxes and delivery costs are not guessed. Without complete accounting,
+a sector cannot become a profit winner. Direct refund/dispute ingestion and
+automatic actual-cost accounting remain external integrations.
 
 Legacy Notion/Telegram modules remain available, but are no longer mandatory
 dependencies of the core pipeline and are not silently called by v2.

@@ -40,6 +40,7 @@ class Settings:
     stripe_key: str = field(default_factory=lambda: os.getenv("STRIPE_API_KEY", ""), repr=False)
     stripe_webhook_secret: str = field(default_factory=lambda: os.getenv("STRIPE_WEBHOOK_SECRET", ""), repr=False)
     stripe_live: bool = field(default_factory=lambda: flag("STRIPE_LIVE_MODE"))
+    portfolio_enabled: bool = field(default_factory=lambda: flag("PORTFOLIO_ENABLED", defaults().get("portfolio", {}).get("enabled", False)))
 
     def __post_init__(self):
         if not 1 <= self.daily_limit <= 500 or not 1 <= self.max_ai_calls <= 1000:
@@ -66,4 +67,5 @@ class Settings:
             },
             "billing": {"ready": bool(self.stripe_key and self.stripe_webhook_secret), "live": self.stripe_live},
             "admin": {"ready": len(self.admin_token) >= 32},
+            "portfolio": {"enabled": self.portfolio_enabled, "research_configured": bool(self.openai_key), "capacity_unit": "new_companies"},
         }

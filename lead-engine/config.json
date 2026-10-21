@@ -2,12 +2,31 @@
   "city": "Hamburg",
   "language_code": "de",
   "region_code": "DE",
-  "active_niche": "barbershop",
+  "active_niche": null,
   "niches": {
-    "barbershop": {"query": "Barbershop in Hamburg"},
-    "beauty": {"query": "Kosmetikstudio in Hamburg"},
-    "fitness": {"query": "Fitnessstudio in Hamburg"},
-    "restaurant": {"query": "Restaurant in Hamburg"}
+    "dental": {"name": "Zahnarztpraxen", "query": "Zahnarzt Hamburg"},
+    "physio": {"name": "Physiotherapie", "query": "Physiotherapie Hamburg"},
+    "renovation": {"name": "Renovierung und Handwerk", "query": "Renovierung Handwerker Hamburg"},
+    "energy": {"name": "Photovoltaik und Energie", "query": "Photovoltaik Installation Hamburg"},
+    "automotive": {"name": "Autowerkstaetten", "query": "Autowerkstatt Hamburg"},
+    "accounting": {"name": "Steuerberatung", "query": "Steuerberater Hamburg"},
+    "fitness": {"name": "Fitnessstudios", "query": "Fitnessstudio Hamburg"},
+    "hospitality": {"name": "Hotels und Pensionen", "query": "Hotel Pension Hamburg"}
+  },
+  "portfolio": {
+    "enabled": true,
+    "policy": {
+      "cadence": "weekly",
+      "exploit_share": 0.7,
+      "min_mature_contacts": 30,
+      "min_paid_leads": 2,
+      "maturity_days": 30,
+      "lookback_days": 120,
+      "evidence_max_age_days": 90,
+      "max_experiments": 6,
+      "max_winners": 2
+    },
+    "districts": ["Hamburg-Mitte", "Altona", "Eimsbuettel", "Hamburg-Nord", "Wandsbek", "Bergedorf", "Harburg"]
   },
   "page_size": 20,
   "max_pages": 1,

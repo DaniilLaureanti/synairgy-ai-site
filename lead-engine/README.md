@@ -6,6 +6,8 @@ The public marketing website is preserved; this is not the Crosspost project.
 ## What works
 
 - Google Places discovery or explicit JSON seed import.
+- Weekly source-linked market research, diversified sector trials, first-touch
+  campaign attribution and a profit-based 70/30 portfolio (see [PORTFOLIO.md](PORTFOLIO.md)).
 - Public-site evidence extraction with bounded, IP-pinned HTTP requests.
 - OpenAI Responses API qualification with Structured Outputs and bounded usage.
 - Local durable CRM, job queue, event history, dead-letter/blocked states.
@@ -53,7 +55,11 @@ By default it binds to `127.0.0.1:8000`. Configure TLS before public access.
 Other commands:
 
 ```sh
-python -m synairgy.cli discover --query 'Barbershop in Hamburg' --limit 5
+python -m synairgy.cli market-research
+python -m synairgy.cli portfolio-report
+python -m synairgy.cli portfolio-plan
+python -m synairgy.cli portfolio-tick --limit 20
+python -m synairgy.cli discover --query 'Autowerkstatt Hamburg' --limit 5
 python -m synairgy.cli discover --seeds /absolute/path/leads.json --limit 5
 python -m synairgy.cli worker --max-jobs 20
 python -m synairgy.cli worker --loop
@@ -84,6 +90,13 @@ All `/api/*` endpoints require `Authorization: Bearer ADMIN_TOKEN`.
 - `POST /api/leads/{id}/checkout`: request_key.
 - `POST /api/suppress`: email.
 - `POST /api/jobs/{id}/retry`
+- `GET /api/portfolio/report`, `/api/portfolio/markets`, `/api/portfolio/plans`,
+  `/api/portfolio/campaigns`, `/api/portfolio/money`, `/api/portfolio/runs`
+- `POST /api/portfolio/research`, `/api/portfolio/evidence`, `/api/portfolio/plan`
+- `POST /api/portfolio/tick`: total capacity across sectors, limit 1-20.
+- `POST /api/portfolio/money`: idempotent EUR cost/refund/fee/tax import.
+- `POST /api/portfolio/campaigns/{id}/verify-costs`: accounting attestation.
+- `POST /api/portfolio/retry`: recover a blocked/failed run after fixing its cause.
 
 The reply endpoint must be fed by an authenticated sender-verifying mailbox
 adapter or the owner. It is not an unauthenticated public email webhook.
@@ -115,6 +128,8 @@ GitHub Actions runs tests on changes. Production scheduling is inactive until
 `ENGINE_ENABLED=1`, `LEAD_ENGINE_URL` and `LEAD_ENGINE_ADMIN_TOKEN` are configured.
 It calls a persistent server and does not try to keep a CRM database on a
 disposable GitHub runner. Manual workflow runs default to readiness-only.
+An empty query now selects the market portfolio. An explicit query remains a
+manual diagnostic override and is not silently credited to a sector experiment.
 
 Use `docker compose up -d --build` with an ignored `.env.local` and a persistent
 volume. Configure a reverse proxy/TLS separately. Never expose the SQLite file

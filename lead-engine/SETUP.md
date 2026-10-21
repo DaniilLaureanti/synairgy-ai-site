@@ -24,6 +24,10 @@
    a starter-model option, not an automatic migration.
 4. Configure Google Places API (New) and its restricted key, or import explicit
    company seeds. A functioning OpenAI key alone cannot supply Places access.
+   Scheduled sector discovery now uses `portfolio-tick` (no fixed niche). Run
+   `market-research` once and inspect `portfolio-report`: at least two sectors
+   need fresh, source-linked demand/budget/website-gap/delivery-fit evidence.
+   See PORTFOLIO.md for the editable candidate universe and weekly/monthly policy.
 5. Configure the sending mailbox, SMTP credentials, domain authentication and a
    sender postal address. Verify the actual recipient before enabling outreach.
    OUTREACH_ENABLED remains 0 until this is ready.
@@ -45,12 +49,16 @@
 
 - Stop the scheduler or set ENGINE_ENABLED=0.
 - Set OUTREACH_ENABLED=0 on the runtime as the send kill switch.
-- Keep the persistent volume intact; deploy the preceding code version.
+- Keep the persistent volume intact. A pre-portfolio binary accepts schema v1
+  only: rolling back from v2 requires a consistent pre-migration backup and a
+  reconciliation/replay plan for subsequent payments, not merely an old image.
 - For transient task failures, inspect the event history and job error code.
   Retry blocked/dead tasks explicitly after correcting their root cause.
 - For a pre-crash 'sending' message, reconcile actual mailbox/server delivery.
   The system never automatically retries uncertain SMTP sends.
 - Use a consistent backup and a restore test before every schema migration.
+- Research/acquisition runs have separate leases and retry records. Use
+  POST /api/portfolio/retry only after fixing a blocked/failed run's cause.
 
 ## Still outside this release
 

@@ -15,6 +15,7 @@ from .demos import save_atomic
 from .domain import BusinessError
 from .models import Job, Lead, Message, Order
 from .outreach import Outreach
+from .portfolio import Portfolio
 from .settings import ROOT, Settings
 from .store import Store
 from .workflow import Worker
@@ -58,7 +59,7 @@ def main(argv=None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("doctor")
     discover = sub.add_parser("discover")
-    discover.add_argument("--query", default=os.getenv("LEAD_QUERY") or "Barbershop in Hamburg")
+    discover.add_argument("--query", default=os.getenv("LEAD_QUERY") or "")
     discover.add_argument("--limit", type=int, default=int(os.getenv("LEAD_LIMIT") or "20"))
     discover.add_argument("--seeds", default="")
     worker = sub.add_parser("worker")
@@ -72,6 +73,11 @@ def main(argv=None) -> int:
     retry = sub.add_parser("retry")
     retry.add_argument("job_id")
     sub.add_parser("reconcile-sends")
+    sub.add_parser("market-research")
+    sub.add_parser("portfolio-report")
+    sub.add_parser("portfolio-plan")
+    portfolio_tick = sub.add_parser("portfolio-tick")
+    portfolio_tick.add_argument("--limit", type=int, default=20)
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     settings = Settings()
@@ -81,11 +87,22 @@ def main(argv=None) -> int:
     store = Store(settings.database_url)
     runner = Worker(store, settings, inspector=PublicInspector(), analyzer=OpenAIAnalyzer(settings.openai_key, settings.model))
     outreach = Outreach(store, settings, SMTPSender(settings))
+    portfolio = Portfolio(store, settings)
     report = {"status": "starting"}
     try:
         if args.command == "discover":
+            if not args.query and not args.seeds:
+                raise BusinessError("Use portfolio-tick for automatic sector selection, or supply an explicit --query/--seeds")
             limit = max(1, min(args.limit, 1000 if args.seeds else 20))
             report = discovery(settings, store, args.query, limit, args.seeds)
+        elif args.command == "market-research":
+            report = portfolio.research()
+        elif args.command == "portfolio-report":
+            report = {"status": "completed", **portfolio.report()}
+        elif args.command == "portfolio-plan":
+            report = {"status": "completed", **portfolio.plan().model_dump()}
+        elif args.command == "portfolio-tick":
+            report = portfolio.tick(args.limit) if settings.portfolio_enabled else {"status": "disabled"}
         elif args.command == "worker":
             while True:
                 report = {"status": "completed", "jobs": runner.run(args.max_jobs)}

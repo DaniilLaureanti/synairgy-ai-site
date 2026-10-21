@@ -30,7 +30,7 @@ def main():
 
     def call(method, path, body=None):
         # Redirects are forbidden: never forward the admin credential elsewhere.
-        r = requests.request(method, base + path, json=body, headers=headers, timeout=120, allow_redirects=False)
+        r = requests.request(method, base + path, json=body, headers=headers, timeout=240, allow_redirects=False)
         if r.status_code != 200:
             raise RuntimeError(f"runtime_http_{r.status_code}")
         return r.json()
@@ -43,11 +43,15 @@ def main():
         if not readiness["discovery"]["ready"]:
             print(json.dumps({"status": "blocked", "code": "runtime_discovery_configuration_missing"}))
             return 2
-        discovery = call(
-            "POST",
-            "/api/discover",
-            {"query": os.getenv("LEAD_QUERY") or "Barbershop in Hamburg", "limit": max(1, min(int(os.getenv("LEAD_LIMIT") or "20"), 20))},
-        )
+        query = (os.getenv("LEAD_QUERY") or "").strip()
+        limit = max(1, min(int(os.getenv("LEAD_LIMIT") or "20"), 20))
+        if query:
+            discovery = call("POST", "/api/discover", {"query": query, "limit": limit})
+        elif readiness.get("portfolio", {}).get("enabled"):
+            discovery = call("POST", "/api/portfolio/tick", {"limit": limit})
+        else:
+            print(json.dumps({"status": "blocked", "code": "portfolio_disabled_and_no_explicit_query"}))
+            return 2
         if discovery.get("status") != "completed":
             print(json.dumps(discovery))
             return 2
@@ -60,10 +64,16 @@ def main():
             if outcome == "blocked":
                 break
         # Sending is explicitly enabled only on the persistent runtime.
-        if readiness["outreach"]["enabled"]:
-            call("POST", "/api/outreach/tick")
-        print(json.dumps({"status": "blocked" if counts.get("blocked") else "completed", "discovery": discovery, "jobs": counts}))
-        return 2 if counts.get("blocked") else 0
+        sends = {}
+        if readiness["outreach"]["enabled"] and not counts.get("blocked"):
+            for _ in range(limit):
+                outcome = call("POST", "/api/outreach/tick")["result"]
+                sends[outcome] = sends.get(outcome, 0) + 1
+                if outcome != "sent":
+                    break
+        status = "blocked" if counts.get("blocked") else ("failed" if counts.get("failed") else "completed")
+        print(json.dumps({"status": status, "discovery": discovery, "jobs": counts, "sends": sends}))
+        return 2 if status != "completed" else 0
     except (ValueError, KeyError, requests.RequestException, RuntimeError) as exc:
         # No exception strings from requests: they can contain secret-bearing URLs.
         print(json.dumps({"status": "failed", "code": type(exc).__name__}))

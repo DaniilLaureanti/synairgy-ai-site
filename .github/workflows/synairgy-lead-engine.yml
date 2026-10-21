@@ -2,7 +2,7 @@ name: SynAirgy Lead Engine
 
 on:
   push:
-    branches: [main, 'codex/lead-engine-v2*']
+    branches: [main, 'codex/lead-engine-v2*', 'codex/market-portfolio*']
     paths: ['lead-engine/**', '.github/workflows/synairgy-lead-engine.yml']
   pull_request:
     paths: ['lead-engine/**', '.github/workflows/synairgy-lead-engine.yml']
@@ -12,10 +12,10 @@ on:
   workflow_dispatch:
     inputs:
       query:
-        description: Optional query override
+        description: Optional manual query; empty uses market research and portfolio allocation
         type: string
       limit:
-        description: Businesses to discover (1-20)
+        description: New-company capacity across all selected sectors (1-20)
         default: '20'
         type: string
       dry_run:

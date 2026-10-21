@@ -99,3 +99,71 @@ class DailyCounter(SQLModel, table=True):
 
 class SchemaVersion(SQLModel, table=True):
     version: int = Field(primary_key=True)
+
+
+class Market(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    name: str
+    city: str
+    query: str
+    offer: str = "Landing"
+    active: bool = True
+    created_at: float = Field(default_factory=time.time)
+
+
+class MarketStudy(SQLModel, table=True):
+    id: str = Field(default_factory=uid, primary_key=True)
+    market_id: str = Field(index=True, foreign_key="market.id")
+    research_key: str = Field(index=True)
+    evidence: list = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
+    created_at: float = Field(default_factory=time.time, index=True)
+
+
+class PortfolioRun(SQLModel, table=True):
+    key: str = Field(primary_key=True)
+    kind: str
+    status: str = "running"
+    lease_token: str = Field(default_factory=uid)
+    lease_until: float = 0
+    result: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    error: str = ""
+    created_at: float = Field(default_factory=time.time)
+
+
+class AllocationPlan(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    policy_version: str = "portfolio-v1"
+    mode: str
+    allocations: list = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
+    snapshot: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    created_at: float = Field(default_factory=time.time)
+
+
+class Campaign(SQLModel, table=True):
+    id: str = Field(default_factory=uid, primary_key=True)
+    plan_id: str = Field(index=True, foreign_key="allocationplan.id")
+    market_id: str = Field(index=True, foreign_key="market.id")
+    lane: str
+    variant: str = "landing-v1"
+    costs_verified_at: float = 0
+    created_at: float = Field(default_factory=time.time)
+
+
+class Attribution(SQLModel, table=True):
+    # First touch is immutable. Rediscovery must never reassign a conversion.
+    lead_id: str = Field(primary_key=True, foreign_key="lead.id")
+    campaign_id: str = Field(index=True, foreign_key="campaign.id")
+    created_at: float = Field(default_factory=time.time)
+
+
+class MoneyEntry(SQLModel, table=True):
+    id: str = Field(default_factory=uid, primary_key=True)
+    request_key: str = Field(unique=True, index=True)
+    campaign_id: str = Field(index=True, foreign_key="campaign.id")
+    lead_id: str = Field(default="", index=True)
+    order_id: str = ""
+    kind: str
+    amount_cents: int
+    currency: str = "eur"
+    detail: str = ""
+    created_at: float = Field(default_factory=time.time, index=True)
