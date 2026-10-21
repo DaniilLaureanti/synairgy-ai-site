@@ -78,8 +78,10 @@ def main() -> int:
     if not dry_run and (not notion_token or not notion_ds):
         raise RuntimeError("NOTION_TOKEN and NOTION_DATA_SOURCE_ID are required unless DRY_RUN=1")
 
-    niche = config["active_niche"]
-    query = os.getenv("LEAD_QUERY", "").strip() or config["niches"][niche]["query"]
+    niche = config.get("active_niche")
+    query = os.getenv("LEAD_QUERY", "").strip() or (config["niches"][niche]["query"] if niche else "")
+    if not query:
+        raise RuntimeError("No single niche is selected. Use python -m synairgy.cli portfolio-tick, or set an explicit LEAD_QUERY for legacy discovery.")
     limit = os.getenv("LEAD_LIMIT", "").strip()
     page_size = max(1, min(int(limit) if limit else int(config["page_size"]), 20))
     threshold = int(config["lead_threshold"])

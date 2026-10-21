@@ -13,7 +13,7 @@ from sqlmodel import select
 from catalog import OFFER_CATALOG
 
 from .domain import BusinessError, Stage
-from .models import Activity, Lead, Order, WebhookReceipt
+from .models import Activity, Attribution, Lead, MoneyEntry, Order, WebhookReceipt
 from .ports import ProviderFailure
 
 
@@ -139,6 +139,13 @@ class Billing:
                     self.store.move(s, lead, Stage.PAID)
                     self.store.enqueue(s, lead.id, "fulfill", key=f"order:{order.id}:fulfill", payload={"order_id": order.id})
                     s.add(Activity(lead_id=lead.id, kind="payment_confirmed", detail={"order_id": order.id, "event_id": event_id}))
+                    attribution = s.get(Attribution, lead.id)
+                    if attribution:
+                        s.add(MoneyEntry(
+                            request_key=f"payment:{order.id}", campaign_id=attribution.campaign_id,
+                            lead_id=lead.id, order_id=order.id, kind="revenue", amount_cents=order.amount_cents,
+                            currency=order.currency, detail="Verified Stripe payment; taxes/fees/costs require accounting.",
+                        ))
                 result = "paid"
             s.add(order)
             s.add(WebhookReceipt(event_id=event_id))

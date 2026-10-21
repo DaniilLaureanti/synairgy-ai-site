@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import secrets
+from typing import Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -12,9 +13,11 @@ from sqlmodel import Session, select
 from .adapters import OpenAIAnalyzer, PublicInspector, SMTPSender
 from .billing import Billing
 from .domain import BusinessError
-from .models import Activity, Job, Lead, Message, Order
+from .models import Activity, AllocationPlan, Campaign, Job, Lead, Market, Message, MoneyEntry, Order, PortfolioRun, uid
 from .outreach import Outreach
+from .portfolio import Portfolio
 from .ports import ProviderFailure
+from .research import ResearchReport
 from .settings import Settings
 from .store import Store
 from .workflow import Worker
@@ -28,6 +31,7 @@ class LeadInput(BaseModel):
     email: str = Field(default="", max_length=254)
     phone: str = Field(default="", max_length=120)
     verified_contact: bool = False
+    campaign_id: str = Field(default="", max_length=64)
 
 
 class ContactInput(BaseModel):
@@ -43,16 +47,40 @@ class CheckoutInput(BaseModel):
 
 
 class DiscoveryInput(BaseModel):
-    query: str = Field(default="Barbershop in Hamburg", min_length=1, max_length=300)
+    query: str = Field(min_length=1, max_length=300)
     limit: int = Field(default=20, ge=1, le=20)
 
 
-def create_app(settings: Settings | None = None, store: Store | None = None, *, worker=None, outreach=None, billing=None) -> FastAPI:
+class PortfolioBatch(BaseModel):
+    limit: int = Field(default=20, ge=1, le=20)
+
+
+class MoneyInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    campaign_id: str = Field(min_length=1, max_length=64)
+    kind: Literal["acquisition_cost", "delivery_cost", "fee", "tax", "refund", "chargeback"]
+    amount_cents: int = Field(ge=0, le=100_000_000, strict=True)
+    request_key: str = Field(min_length=1, max_length=160)
+    lead_id: str = Field(default="", max_length=64)
+    order_id: str = Field(default="", max_length=64)
+    detail: str = Field(default="", max_length=1000)
+
+
+class AccountingConfirmation(BaseModel):
+    complete: Literal[True]
+
+
+class PortfolioRetry(BaseModel):
+    key: str = Field(min_length=1, max_length=200)
+
+
+def create_app(settings: Settings | None = None, store: Store | None = None, *, worker=None, outreach=None, billing=None, portfolio=None) -> FastAPI:
     settings = settings or Settings()
     store = store or Store(settings.database_url)
     worker = worker or Worker(store, settings, inspector=PublicInspector(), analyzer=OpenAIAnalyzer(settings.openai_key, settings.model))
     outreach = outreach or Outreach(store, settings, SMTPSender(settings))
     billing = billing or Billing(store, settings)
+    portfolio = portfolio or Portfolio(store, settings)
     app = FastAPI(title="SynAirgy Lead Engine", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.store = store
 
@@ -79,7 +107,11 @@ def create_app(settings: Settings | None = None, store: Store | None = None, *, 
     def readiness():
         return settings.readiness()
 
-    for route, model in [("leads", Lead), ("messages", Message), ("jobs", Job), ("orders", Order), ("activity", Activity)]:
+    for route, model in [
+        ("leads", Lead), ("messages", Message), ("jobs", Job), ("orders", Order), ("activity", Activity),
+        ("portfolio/markets", Market), ("portfolio/plans", AllocationPlan), ("portfolio/campaigns", Campaign),
+        ("portfolio/money", MoneyEntry), ("portfolio/runs", PortfolioRun),
+    ]:
 
         def make_reader(target):
             def reader(limit: int = Query(100, ge=1, le=500)):
@@ -91,7 +123,10 @@ def create_app(settings: Settings | None = None, store: Store | None = None, *, 
 
     @app.post("/api/leads", dependencies=[Depends(admin)])
     def add_lead(value: LeadInput):
-        lead, created = store.add_lead(value.model_dump(exclude={"verified_contact"}), verified_contact=value.verified_contact)
+        lead, created = store.add_lead(
+            value.model_dump(exclude={"verified_contact", "campaign_id"}),
+            verified_contact=value.verified_contact, campaign_id=value.campaign_id,
+        )
         return {"id": lead.id, "created": created}
 
     @app.post("/api/worker/tick", dependencies=[Depends(admin)])
@@ -103,6 +138,42 @@ def create_app(settings: Settings | None = None, store: Store | None = None, *, 
         from .cli import discovery
 
         return discovery(settings, store, value.query, value.limit)
+
+    @app.get("/api/portfolio/report", dependencies=[Depends(admin)])
+    def portfolio_report():
+        return portfolio.report()
+
+    @app.post("/api/portfolio/research", dependencies=[Depends(admin)])
+    def market_research():
+        return portfolio.research()
+
+    @app.post("/api/portfolio/evidence", dependencies=[Depends(admin)])
+    def evidence_import(value: ResearchReport):
+        portfolio.ingest(value, f"import:{uid()}")
+        return {"status": "imported", "markets": len(value.candidates)}
+
+    @app.post("/api/portfolio/plan", dependencies=[Depends(admin)])
+    def allocation_plan():
+        return portfolio.plan().model_dump()
+
+    @app.post("/api/portfolio/tick", dependencies=[Depends(admin)])
+    def portfolio_tick(value: PortfolioBatch):
+        return portfolio.tick(value.limit) if settings.portfolio_enabled else {"status": "disabled"}
+
+    @app.post("/api/portfolio/money", dependencies=[Depends(admin)])
+    def money_import(value: MoneyInput):
+        values = value.model_dump()
+        return portfolio.record_money(**values).model_dump()
+
+    @app.post("/api/portfolio/campaigns/{campaign_id}/verify-costs", dependencies=[Depends(admin)])
+    def verify_accounting(campaign_id: str, value: AccountingConfirmation):
+        portfolio.verify_costs(campaign_id)
+        return {"status": "costs_verified"}
+
+    @app.post("/api/portfolio/retry", dependencies=[Depends(admin)])
+    def retry_portfolio(value: PortfolioRetry):
+        portfolio.retry(value.key)
+        return {"status": "pending"}
 
     @app.post("/api/outreach/tick", dependencies=[Depends(admin)])
     def send():
