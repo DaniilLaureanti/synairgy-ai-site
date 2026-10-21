@@ -456,3 +456,26 @@ def test_invalid_transition_rejected():
 def test_identity_and_backoff_are_stable():
     assert identity(PLACE) == identity(dict(PLACE))
     assert backoff(1) == 30 and backoff(1000) <= 3600
+
+
+@pytest.mark.parametrize("explicit,render_url,expected", [
+    (None, "https://synairgy-test.onrender.com", "https://synairgy-test.onrender.com"),
+    ("", "https://synairgy-test.onrender.com", "https://synairgy-test.onrender.com"),
+    ("https://custom.example/", "https://synairgy-test.onrender.com", "https://custom.example"),
+    (None, None, "http://127.0.0.1:8000"),
+])
+def test_cloud_preview_and_payment_links_use_the_deployed_address(rig, monkeypatch, explicit, render_url, expected):
+    for name, value in [("PUBLIC_BASE_URL", explicit), ("RENDER_EXTERNAL_URL", render_url)]:
+        if value is None:
+            monkeypatch.delenv(name, raising=False)
+        else:
+            monkeypatch.setenv(name, value)
+    settings = replace(rig.settings, public_url=Settings().public_url)
+    rig.worker.settings = rig.billing.settings = settings
+    lead = interested(rig)
+    message = rig.store.all(Message)[0]
+    assert expected + "/preview/" + lead.preview_token in message.body
+    rig.billing.checkout(lead.id, "cloud-checkout")
+    params, _ = rig.stripe.calls[0]
+    assert params["success_url"] == expected + "/payment/received"
+    assert params["cancel_url"] == expected + "/payment/cancelled"
