@@ -26,7 +26,9 @@ class Settings:
     review_threshold: int = field(default_factory=lambda: int(defaults()["review_threshold"]))
     google_key: str = field(default_factory=lambda: os.getenv("GOOGLE_PLACES_API_KEY", ""), repr=False)
     admin_token: str = field(default_factory=lambda: os.getenv("ADMIN_TOKEN", ""), repr=False)
-    public_url: str = field(default_factory=lambda: os.getenv("PUBLIC_BASE_URL", "http://127.0.0.1:8000").rstrip("/"))
+    public_url: str = field(default_factory=lambda: (
+        os.getenv("PUBLIC_BASE_URL") or os.getenv("RENDER_EXTERNAL_URL") or "http://127.0.0.1:8000"
+    ).rstrip("/"))
     outreach_enabled: bool = field(default_factory=lambda: flag("OUTREACH_ENABLED"))
     auto_approve: bool = field(default_factory=lambda: flag("AUTO_APPROVE_OUTREACH"))
     daily_limit: int = field(default_factory=lambda: int(os.getenv("DAILY_SEND_LIMIT", "20")))

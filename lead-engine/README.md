@@ -3,6 +3,19 @@
 A resumable commercial workflow built on the existing SynAirgy Python project.
 The public marketing website is preserved; this is not the Crosspost project.
 
+## Cloud launch
+
+[Deploy to Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FDaniilLaureanti%2Fsynairgy-ai-site)
+
+The root `render.yaml` provisions one paid Python service in Frankfurt and a
+1 GB persistent disk. The base infrastructure estimate is $7.25/month, excluding
+taxes, excess usage and external providers; review Render's current quote before
+approving. [Launch steps and remaining account setup](CLOUD_LAUNCH.md).
+
+Provider keys are added in the cloud secret settings after deployment. An empty
+service can pass its health check while discovery, outreach and billing remain
+unconfigured. Health is not a successful commercial launch.
+
 ## What works
 
 - Google Places discovery or explicit JSON seed import.

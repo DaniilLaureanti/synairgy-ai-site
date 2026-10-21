@@ -2,10 +2,10 @@ name: SynAirgy Lead Engine
 
 on:
   push:
-    branches: [main, 'codex/lead-engine-v2*', 'codex/market-portfolio*']
-    paths: ['lead-engine/**', '.github/workflows/synairgy-lead-engine.yml']
+    branches: [main, 'codex/lead-engine-v2*', 'codex/market-portfolio*', 'codex/cloud-launch*']
+    paths: ['lead-engine/**', 'render.yaml', '.python-version', '.github/workflows/synairgy-lead-engine.yml']
   pull_request:
-    paths: ['lead-engine/**', '.github/workflows/synairgy-lead-engine.yml']
+    paths: ['lead-engine/**', 'render.yaml', '.python-version', '.github/workflows/synairgy-lead-engine.yml']
   schedule:
     - cron: '10 9 * * 1-5'
       timezone: 'Europe/Berlin'
