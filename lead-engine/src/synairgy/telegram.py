@@ -100,13 +100,17 @@ class TelegramConsole:
             return None
         return callback, message
 
-    def accept(self, update, *, now=None):
+    def accept(self, update, *, now=None, poller_token=None):
         now = time.time() if now is None else now
         if not isinstance(update, dict) or type(update.get("update_id")) is not int or update["update_id"] < 0:
             return "invalid"
         update_id = update["update_id"]
         receipt = f"{self.bot_id}:{update_id}"
         with self.store.transaction() as s:
+            if poller_token is not None:
+                lease = self.store.control_value(s, f"telegram:{self.bot_id}:poller")
+                if lease.get("token") != poller_token or lease.get("until", 0) < now:
+                    return "stale"
             if s.get(TelegramUpdate, receipt):
                 return "duplicate"
             # Only the durable receipt/offset is retained; no raw chat content is stored.
@@ -308,8 +312,11 @@ class TelegramRunner:
                                                                "allowed_updates": ["message", "callback_query"]})
             if not isinstance(updates, list):
                 raise TelegramFailure("telegram_invalid_updates")
+            if not self.acquire(time.time()):
+                return {"status": "another_poller_active"}
             for update in updates[:50]:
-                self.console.accept(update)
+                if self.console.accept(update, poller_token=self.lease_token) == "stale":
+                    return {"status": "another_poller_active"}
             self.console.periodic()
             outcomes = []
             for _ in range(10):

@@ -366,3 +366,14 @@ def test_scheduled_acquisition_pause_keeps_existing_outreach_running(bot, monkey
     assert main() == 0
     assert len(bot.sender.calls) == 1 and "/api/discover" not in paths and "/api/portfolio/tick" not in paths
     assert '"status": "paused"' in capsys.readouterr().out
+
+
+def test_expired_poller_cannot_commit_commands_or_advance_offset(bot):
+    now = time.time()
+    old, new = TelegramRunner(bot.console), TelegramRunner(bot.console)
+    assert old.acquire(now) and new.acquire(now + 181)
+    update = incoming(bot, 77)
+    assert bot.console.accept(update, now=now + 182, poller_token=old.lease_token) == "stale"
+    with Session(bot.store.engine) as s:
+        assert bot.store.control_value(s, bot.console.offset_key) == {}
+    assert bot.console.accept(update, now=now + 182, poller_token=new.lease_token) == "accepted"
