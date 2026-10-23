@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import secrets
+import threading
+from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
@@ -74,14 +76,42 @@ class PortfolioRetry(BaseModel):
     key: str = Field(min_length=1, max_length=200)
 
 
-def create_app(settings: Settings | None = None, store: Store | None = None, *, worker=None, outreach=None, billing=None, portfolio=None) -> FastAPI:
+class PauseInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    target: Literal["acquisition", "outreach"]
+    paused: bool = Field(strict=True)
+
+
+def create_app(settings: Settings | None = None, store: Store | None = None, *, worker=None, outreach=None, billing=None, portfolio=None, telegram_runner=None) -> FastAPI:
     settings = settings or Settings()
     store = store or Store(settings.database_url)
+    from .telegram import resolve_owner
+
+    settings = resolve_owner(settings, store)
     worker = worker or Worker(store, settings, inspector=PublicInspector(), analyzer=OpenAIAnalyzer(settings.openai_key, settings.model))
     outreach = outreach or Outreach(store, settings, SMTPSender(settings))
     billing = billing or Billing(store, settings)
     portfolio = portfolio or Portfolio(store, settings)
-    app = FastAPI(title="SynAirgy Lead Engine", docs_url=None, redoc_url=None, openapi_url=None)
+    @asynccontextmanager
+    async def lifespan(app):
+        poller, thread = telegram_runner, None
+        if settings.telegram_enabled and settings.telegram_token and settings.telegram_owner_id:
+            if poller is None:
+                from .telegram import TelegramConsole, TelegramRunner
+
+                poller = TelegramRunner(TelegramConsole(store, settings, portfolio))
+            poller.stop.clear()
+            thread = threading.Thread(target=poller.run, name="synairgy-telegram", daemon=True)
+            thread.start()
+        app.state.telegram_runner = poller
+        try:
+            yield
+        finally:
+            if thread:
+                poller.stop.set()
+                thread.join(timeout=5)
+
+    app = FastAPI(title="SynAirgy Lead Engine", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     app.state.store = store
 
     def admin(authorization: str = Header(default="")):
@@ -105,7 +135,16 @@ def create_app(settings: Settings | None = None, store: Store | None = None, *, 
 
     @app.get("/api/readiness", dependencies=[Depends(admin)])
     def readiness():
-        return settings.readiness()
+        return {**settings.readiness(), "controls": store.controls()}
+
+    @app.get("/api/controls", dependencies=[Depends(admin)])
+    def controls():
+        return store.controls()
+
+    @app.post("/api/controls/pause", dependencies=[Depends(admin)])
+    def pause(value: PauseInput):
+        store.set_paused(value.target, value.paused)
+        return store.controls()
 
     for route, model in [
         ("leads", Lead), ("messages", Message), ("jobs", Job), ("orders", Order), ("activity", Activity),

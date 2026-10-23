@@ -1,5 +1,10 @@
 # Launch the existing engine on Render
 
+The owner console can be connected locally first; see
+[Telegram setup](TELEGRAM_CONSOLE.md). Later the same web service starts its
+polling thread with `TELEGRAM_ENABLED=1`, a private bot token and a bound owner.
+No second Render service or Telegram webhook is required.
+
 Deployment entry point:
 
 [Deploy SynAirgy](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FDaniilLaureanti%2Fsynairgy-ai-site)

@@ -3,6 +3,15 @@
 A resumable commercial workflow built on the existing SynAirgy Python project.
 The public marketing website is preserved; this is not the Crosspost project.
 
+## Telegram console first
+
+The owner console now has Russian menus, paginated leads, portfolio/cash views,
+daily/weekly reports, event alerts and persistent acquisition/mail pauses.
+It can run locally before cloud deployment, with only a dedicated bot token and
+an owner binding. See [connection and boundaries](TELEGRAM_CONSOLE.md).
+The same polling module runs inside `serve` later; a public Telegram webhook and
+a separate service are not needed. A bot has not been connected by committing code.
+
 ## Cloud launch
 
 [Deploy to Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FDaniilLaureanti%2Fsynairgy-ai-site)

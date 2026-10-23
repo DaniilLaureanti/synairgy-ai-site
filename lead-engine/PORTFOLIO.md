@@ -130,6 +130,8 @@ worker cannot commit evidence or replace a completed result. Financial and
 portfolio control endpoints require the same administrative authentication.
 
 Schema v2 adds tables without rewriting v1 leads, jobs, messages or orders.
+The current store uses schema v3, adding owner-console/control tables on top of
+that portfolio schema; v1/v2 upgrades remain additive.
 Keep a consistent SQLite backup before upgrade. Tests cover v1 preservation,
 backup restoration and refusal of unknown schemas before any new DDL.
 

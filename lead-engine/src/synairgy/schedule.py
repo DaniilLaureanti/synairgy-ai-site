@@ -40,19 +40,22 @@ def main():
         if dry:
             print(json.dumps({"status": "dry_run", "readiness": readiness, "external_writes": False}))
             return 0
-        if not readiness["discovery"]["ready"]:
+        acquisition_paused = readiness.get("controls", {}).get("acquisition", {}).get("paused", False)
+        if not readiness["discovery"]["ready"] and not acquisition_paused:
             print(json.dumps({"status": "blocked", "code": "runtime_discovery_configuration_missing"}))
             return 2
         query = (os.getenv("LEAD_QUERY") or "").strip()
         limit = max(1, min(int(os.getenv("LEAD_LIMIT") or "20"), 20))
-        if query:
+        if acquisition_paused:
+            discovery = {"status": "paused", "code": "acquisition_paused"}
+        elif query:
             discovery = call("POST", "/api/discover", {"query": query, "limit": limit})
         elif readiness.get("portfolio", {}).get("enabled"):
             discovery = call("POST", "/api/portfolio/tick", {"limit": limit})
         else:
             print(json.dumps({"status": "blocked", "code": "portfolio_disabled_and_no_explicit_query"}))
             return 2
-        if discovery.get("status") != "completed":
+        if discovery.get("status") not in {"completed", "paused"}:
             print(json.dumps(discovery))
             return 2
         counts = {}

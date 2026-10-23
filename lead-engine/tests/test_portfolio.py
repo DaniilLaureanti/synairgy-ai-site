@@ -415,7 +415,7 @@ def test_v1_migration_and_sqlite_backup_restore_preserve_leads(tmp_path):
         source.backup(target)
     migrated = Store(f"sqlite:///{path}")
     assert migrated.get(Lead, "legacy").company == "Existing customer"
-    assert migrated.get(SchemaVersion, 2) is not None and migrated.all(Market) == []
+    assert migrated.get(SchemaVersion, 3) is not None and migrated.all(Market) == []
     with sqlite3.connect(tmp_path / "backup.sqlite3") as source, sqlite3.connect(tmp_path / "restored.sqlite3") as target:
         source.backup(target)
     restored = Store(f"sqlite:///{tmp_path / 'restored.sqlite3'}")

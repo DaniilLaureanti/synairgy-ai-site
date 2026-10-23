@@ -54,10 +54,14 @@ class Outreach:
     def send_one(self, now: float | None = None) -> str:
         if not self.settings.outreach_enabled:
             return "disabled"
+        if self.store.paused("outreach"):
+            return "paused"
         if not self.settings.readiness()["outreach"]["ready"]:
             raise ProviderFailure("outreach_configuration_missing", blocked=True)
         now = time.time() if now is None else now
         with self.store.transaction() as s:
+            if self.store.paused("outreach", session=s):
+                return "paused"
             msg = s.exec(
                 select(Message)
                 .where(Message.status == "draft", Message.approved.is_(True), Message.due_at <= now)
