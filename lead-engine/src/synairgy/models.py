@@ -101,6 +101,45 @@ class SchemaVersion(SQLModel, table=True):
     version: int = Field(primary_key=True)
 
 
+class ControlState(SQLModel, table=True):
+    key: str = Field(primary_key=True)
+    value: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    updated_at: float = Field(default_factory=time.time)
+    revision: int = 0
+
+
+class TelegramUpdate(SQLModel, table=True):
+    key: str = Field(primary_key=True)
+    update_id: int
+    created_at: float = Field(default_factory=time.time)
+
+
+class TelegramAction(SQLModel, table=True):
+    id: str = Field(default_factory=uid, primary_key=True)
+    owner_id: int
+    target: str
+    paused: bool
+    expires_at: float
+    expected_revision: int = 0
+    consumed: bool = False
+
+
+class TelegramDelivery(SQLModel, table=True):
+    id: str = Field(default_factory=uid, primary_key=True)
+    dedupe_key: str = Field(unique=True, index=True)
+    bot_id: str = Field(index=True)
+    owner_id: int = Field(index=True)
+    method: str = "sendMessage"
+    payload: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    status: str = Field(default="pending", index=True)
+    attempts: int = 0
+    due_at: float = Field(default_factory=time.time, index=True)
+    lease_until: float = 0
+    lease_token: str = ""
+    error: str = ""
+    created_at: float = Field(default_factory=time.time)
+
+
 class Market(SQLModel, table=True):
     id: str = Field(primary_key=True)
     name: str

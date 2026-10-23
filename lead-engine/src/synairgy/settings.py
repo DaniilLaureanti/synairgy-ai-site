@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -43,12 +44,20 @@ class Settings:
     stripe_webhook_secret: str = field(default_factory=lambda: os.getenv("STRIPE_WEBHOOK_SECRET", ""), repr=False)
     stripe_live: bool = field(default_factory=lambda: flag("STRIPE_LIVE_MODE"))
     portfolio_enabled: bool = field(default_factory=lambda: flag("PORTFOLIO_ENABLED", defaults().get("portfolio", {}).get("enabled", False)))
+    telegram_enabled: bool = field(default_factory=lambda: flag("TELEGRAM_ENABLED"))
+    telegram_token: str = field(default_factory=lambda: os.getenv("TELEGRAM_BOT_TOKEN", ""), repr=False)
+    telegram_owner_id: int = field(default_factory=lambda: int(os.getenv("TELEGRAM_OWNER_ID") or "0"))
+    telegram_report_hour: int = field(default_factory=lambda: int(os.getenv("TELEGRAM_REPORT_HOUR") or "19"))
 
     def __post_init__(self):
         if not 1 <= self.daily_limit <= 500 or not 1 <= self.max_ai_calls <= 1000:
             raise ValueError("Daily limits outside supported range")
         if not 0 <= self.review_threshold <= self.lead_threshold <= 100:
             raise ValueError("Invalid qualification thresholds")
+        if not 0 <= self.telegram_report_hour <= 23 or not 0 <= self.telegram_owner_id < 2**52:
+            raise ValueError("Invalid Telegram owner/report settings")
+        if self.telegram_token and not re.fullmatch(r"[0-9]{5,20}:[A-Za-z0-9_-]{20,100}", self.telegram_token):
+            raise ValueError("Invalid Telegram token format")
         url = urlsplit(self.public_url)
         if url.scheme not in {"http", "https"} or not url.hostname or url.username or url.password or url.query or url.fragment:
             raise ValueError("Invalid PUBLIC_BASE_URL")
@@ -70,4 +79,9 @@ class Settings:
             "billing": {"ready": bool(self.stripe_key and self.stripe_webhook_secret), "live": self.stripe_live},
             "admin": {"ready": len(self.admin_token) >= 32},
             "portfolio": {"enabled": self.portfolio_enabled, "research_configured": bool(self.openai_key), "capacity_unit": "new_companies"},
+            "telegram": {
+                "enabled": self.telegram_enabled,
+                "configured": bool(self.telegram_token and self.telegram_owner_id),
+                "transport": "long_polling",
+            },
         }

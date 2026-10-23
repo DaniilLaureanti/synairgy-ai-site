@@ -18,10 +18,13 @@ from .outreach import Outreach
 from .portfolio import Portfolio
 from .settings import ROOT, Settings
 from .store import Store
+from .telegram import TelegramFailure
 from .workflow import Worker
 
 
 def discovery(settings, store, query: str, limit: int, seeds: str = "") -> dict:
+    if store.paused("acquisition"):
+        return {"status": "paused", "code": "acquisition_paused", "discovered": 0}
     if seeds:
         rows = json.loads(Path(seeds).read_text(encoding="utf-8"))
         if not isinstance(rows, list) or len(rows) > 1000:
@@ -58,6 +61,10 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="SynAirgy Lead Engine v2")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("doctor")
+    telegram = sub.add_parser("telegram", help="Run the owner console without a public server")
+    telegram.add_argument("--once", action="store_true", help="One bounded polling/report/delivery tick")
+    sub.add_parser("telegram-setup", help="Check the dedicated bot and configure its command menu")
+    sub.add_parser("telegram-pair", help="Bind the owner through a private one-time Telegram link")
     discover = sub.add_parser("discover")
     discover.add_argument("--query", default=os.getenv("LEAD_QUERY") or "")
     discover.add_argument("--limit", type=int, default=int(os.getenv("LEAD_LIMIT") or "20"))
@@ -85,12 +92,40 @@ def main(argv=None) -> int:
         print(json.dumps(settings.readiness()))
         return 0
     store = Store(settings.database_url)
+    from .telegram import resolve_owner
+
+    settings = resolve_owner(settings, store)
     runner = Worker(store, settings, inspector=PublicInspector(), analyzer=OpenAIAnalyzer(settings.openai_key, settings.model))
     outreach = Outreach(store, settings, SMTPSender(settings))
     portfolio = Portfolio(store, settings)
     report = {"status": "starting"}
     try:
-        if args.command == "discover":
+        if args.command == "telegram-pair":
+            from .telegram import pair
+
+            report = pair(settings, store, announce=lambda value: print(value, flush=True))
+        elif args.command in {"telegram", "telegram-setup"}:
+            from .telegram import TelegramConsole, TelegramRunner, setup
+
+            if not settings.telegram_enabled:
+                raise BusinessError("Set TELEGRAM_ENABLED=1 after configuring the dedicated owner bot")
+            bot = TelegramConsole(store, settings, portfolio)
+            if args.command == "telegram-setup":
+                report = setup(bot)
+            else:
+                poller = TelegramRunner(bot)
+                try:
+                    if args.once:
+                        report = poller.once()
+                    else:
+                        poller.run()
+                        report = {"status": "stopped"}
+                except KeyboardInterrupt:
+                    report = {"status": "stopped"}
+                finally:
+                    poller.stop.set()
+                    poller.release()
+        elif args.command == "discover":
             if not args.query and not args.seeds:
                 raise BusinessError("Use portfolio-tick for automatic sector selection, or supply an explicit --query/--seeds")
             limit = max(1, min(args.limit, 1000 if args.seeds else 20))
@@ -142,7 +177,8 @@ def main(argv=None) -> int:
             uvicorn.run(create_app(settings, store), host=args.host, port=args.port, access_log=False)
             return 0
     except Exception as exc:
-        report = {"status": "failed", "code": str(exc) if isinstance(exc, BusinessError) else type(exc).__name__}
+        code = exc.code if isinstance(exc, TelegramFailure) else (str(exc) if isinstance(exc, BusinessError) else type(exc).__name__)
+        report = {"status": "failed", "code": code}
     out = Path(os.getenv("OUTPUT_PATH", ROOT / "out" / "summary.json"))
     save_atomic(out, json.dumps(report, ensure_ascii=False, indent=2))
     print(json.dumps(report, ensure_ascii=False))

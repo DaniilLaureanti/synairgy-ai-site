@@ -2,7 +2,7 @@ name: SynAirgy Lead Engine
 
 on:
   push:
-    branches: [main, 'codex/lead-engine-v2*', 'codex/market-portfolio*', 'codex/cloud-launch*']
+    branches: [main, 'codex/lead-engine-v2*', 'codex/market-portfolio*', 'codex/cloud-launch*', 'codex/telegram-console*']
     paths: ['lead-engine/**', 'render.yaml', '.python-version', '.github/workflows/synairgy-lead-engine.yml']
   pull_request:
     paths: ['lead-engine/**', 'render.yaml', '.python-version', '.github/workflows/synairgy-lead-engine.yml']

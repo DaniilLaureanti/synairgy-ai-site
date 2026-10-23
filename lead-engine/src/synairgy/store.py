@@ -16,7 +16,7 @@ from sqlalchemy import text
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from .domain import BusinessError, Stage, backoff, email_address, identity, transition
-from .models import Activity, Attribution, Campaign, DailyCounter, Job, Lead, Message, Suppression, uid
+from .models import Activity, Attribution, Campaign, ControlState, DailyCounter, Job, Lead, Message, Suppression, uid
 
 
 class Store:
@@ -29,20 +29,20 @@ class Store:
         self._migrate()
 
     def _migrate(self):
-        # v1 -> v2 is additive only. Check BEFORE DDL, serialize concurrent starts,
+        # v1/v2 -> v3 is additive only. Check BEFORE DDL, serialize concurrent starts,
         # and commit new tables plus the version marker in one transaction.
         with self.engine.connect() as conn:
             conn.exec_driver_sql("BEGIN IMMEDIATE")
             try:
                 exists = conn.exec_driver_sql("SELECT name FROM sqlite_master WHERE type='table' AND name='schemaversion'").first()
                 versions = list(conn.exec_driver_sql("SELECT version FROM schemaversion").scalars()) if exists else []
-                if versions and versions not in ([1], [2]):
+                if versions and versions not in ([1], [2], [3]):
                     raise RuntimeError("Unsupported database schema; migration required")
                 SQLModel.metadata.create_all(conn)
-                if versions == [1]:
-                    conn.exec_driver_sql("UPDATE schemaversion SET version=2 WHERE version=1")
+                if versions in ([1], [2]):
+                    conn.exec_driver_sql("UPDATE schemaversion SET version=3")
                 elif not versions:
-                    conn.exec_driver_sql("INSERT INTO schemaversion(version) VALUES (2)")
+                    conn.exec_driver_sql("INSERT INTO schemaversion(version) VALUES (3)")
                 conn.commit()
             except BaseException:
                 conn.rollback()
@@ -66,6 +66,39 @@ class Store:
     def all(self, model, limit: int = 100):
         with Session(self.engine) as s:
             return list(s.exec(select(model).limit(limit)).all())
+
+    @staticmethod
+    def control_value(s: Session, key: str, default: dict | None = None) -> dict:
+        row = s.get(ControlState, key)
+        return row.value if row else (default or {})
+
+    @staticmethod
+    def put_control(s: Session, key: str, value: dict):
+        row = s.get(ControlState, key) or ControlState(key=key)
+        row.value, row.updated_at = value, time.time()
+        row.revision += 1
+        s.add(row)
+
+    def paused(self, target: str, *, session: Session | None = None) -> bool:
+        if target not in {"acquisition", "outreach"}:
+            raise BusinessError("Unknown control target")
+        if session is not None:
+            return bool(self.control_value(session, f"pause:{target}").get("paused"))
+        with Session(self.engine) as s:
+            return self.paused(target, session=s)
+
+    def set_paused(self, target: str, paused: bool, *, session: Session | None = None, actor: str = "admin"):
+        if target not in {"acquisition", "outreach"} or not isinstance(paused, bool):
+            raise BusinessError("Invalid pause control")
+        if session is None:
+            with self.transaction() as s:
+                return self.set_paused(target, paused, session=s, actor=actor)
+        self.put_control(session, f"pause:{target}", {"paused": paused})
+        session.add(Activity(lead_id="", kind="control_changed", detail={"target": target, "paused": paused, "actor": actor}))
+
+    def controls(self) -> dict:
+        with Session(self.engine) as s:
+            return {target: {"paused": self.paused(target, session=s)} for target in ("acquisition", "outreach")}
 
     @staticmethod
     def enqueue(s: Session, lead_id: str, kind: str, *, key: str | None = None, payload: dict | None = None, due_at: float | None = None):

@@ -174,6 +174,8 @@ class Portfolio:
                 save(s)
 
     def research(self, now=None) -> dict:
+        if self.store.paused("acquisition"):
+            return {"status": "paused", "code": "acquisition_paused"}
         now = time.time() if now is None else now
         self.bootstrap()
         key = f"research:{self.city}:{period(now)}"
@@ -445,6 +447,8 @@ class Portfolio:
             s.add(Activity(lead_id="", kind="campaign_costs_verified", detail={"campaign_id": campaign.id}))
 
     def tick(self, limit=20, now=None) -> dict:
+        if self.store.paused("acquisition"):
+            return {"status": "paused", "code": "acquisition_paused"}
         now = time.time() if now is None else now
         if not 1 <= limit <= 20:
             raise BusinessError("Portfolio batch must contain 1-20 new companies")
