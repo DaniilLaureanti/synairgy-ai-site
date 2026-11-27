@@ -290,6 +290,15 @@ class RepositoryTest(unittest.TestCase):
         old.write_text("[]\n")
         self.assertTrue(any("Malformed journal" in error for error in p.verify(self.root)))
 
+    def test_checkpoint_cannot_leave_its_check_evidence_unstaged(self):
+        self.write("app.py", "value = 2\n")
+        self.assertEqual(self.run_fixture("raise SystemExit(0)"), 0)
+        checkpoint = self.checkpoint()
+        self.git("add", "app.py", p.STATUS, p.EVENTS + checkpoint["id"] + ".json")
+        self.assertTrue(any("evidence is absent" in error for error in p.verify(self.root, "index")))
+        self.git("add", p.EVENTS)
+        self.assertEqual(p.verify(self.root, "index"), [])
+
 
 class ArchitectureTest(unittest.TestCase):
     def setUp(self):

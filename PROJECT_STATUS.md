@@ -2,7 +2,7 @@
 
 Updated: 2026-11-27. Canonical development handoff; historical Notion notes are context.
 
-<!-- progress-state {"checkpoint":"20261127T155215178852Z-ce2fe2791c9f","source_digest":"d038531d2bcfcc5664f2d12d2d8b5d58f831cafa2c6f96c2041c1b9813212a84"} -->
+<!-- progress-state {"checkpoint":"20261127T155349582242Z-9b5943c3bc35","source_digest":"e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7"} -->
 
 ## Current task
 
@@ -35,7 +35,7 @@ this repository. Branch: `codex/project-continuity-20261127`; baseline main
 
 ## Next step
 
-Run the final 29 recovery/tooling tests and existing offline suites, then record
+Run the final 30 recovery/tooling tests and existing offline suites, then record
 the results, push the implementation branch and verify the GitHub checks.
 
 ## Blockers and questions
@@ -53,10 +53,16 @@ the results, push the implementation branch and verify the GitHub checks.
 - One existing Starlette/httpx deprecation warning; no product test failure.
 - The atomic-publication revision is not yet validated; prior results are retained
   in immutable events and do not claim to cover the new source snapshot.
+- Intermediate atomic-publication snapshot `d038531d2bcfcc5664f2d12d2d8b5d58f831cafa2c6f96c2041c1b9813212a84`
+  passed 29 tooling tests, 99 engine tests and architecture/site checks. Review then
+  added enforcement that checkpoints carry their referenced check evidence in Git.
 
 ## External operations
 
-- None started for this task. Repository: https://github.com/DaniilLaureanti/synairgy-ai-site
+- Repository: https://github.com/DaniilLaureanti/synairgy-ai-site
+- Git CLI push readiness check found no shell credential. No remote write occurred.
+  Use the connected GitHub tools to synchronize the branch and inspect CI; do not
+  request or copy a new token for this task. Remote branch/PR IDs are not yet created.
 - Prior merged Telegram implementation: PR #4. No deployment or billing operation
   is started by this development-continuity task.
 

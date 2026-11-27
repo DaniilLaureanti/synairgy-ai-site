@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "20261127T155349582242Z-9b5943c3bc35",
+  "kind": "checkpoint",
+  "at": "2026-11-27T15:53:49.582242+00:00",
+  "source": {
+    "digest": "e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7",
+    "scope": "worktree",
+    "head": "8a1b264d542dd1030eb00008808d52975aa43fc1"
+  },
+  "task": "Shared development continuity",
+  "summary": [
+    "Atomic publication revision passed 29 recovery tests and 99 engine tests plus architecture/site. Added a final staging check requiring referenced run evidence to travel with each checkpoint."
+  ],
+  "next_step": "Commit the evidence-binding fix, run all 30 tooling tests and product suites, then publish the complete commit sequence through the GitHub connection.",
+  "decisions": [],
+  "blockers": [
+    "Shell Git push has no credential; connected GitHub API remains available for synchronization."
+  ],
+  "external_operations": [],
+  "checks": []
+}

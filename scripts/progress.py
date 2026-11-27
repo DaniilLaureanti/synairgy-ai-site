@@ -177,6 +177,15 @@ def records(view):
             if row["kind"] == "check-finish" and row["outcome"] == "passed":
                 if row.get("returncode") != 0 or row.get("after_digest") != row["source"]["digest"]:
                     raise ProgressError("Passed check must have exit 0 on unchanged sources.")
+    for position, row in enumerate(result):
+        if row["kind"] != "checkpoint":
+            continue
+        observed = {r["id"]: r for r in check_states(result[:position])}
+        for evidence in row.get("checks", []):
+            run = observed.get(evidence.get("run_id"))
+            if (not run or run["source"]["digest"] != row["source"]["digest"]
+                    or run["check"] != evidence.get("check") or run["outcome"] != evidence.get("outcome")):
+                raise ProgressError("Checkpoint check evidence is absent or inconsistent; stage its run events together.")
     return result
 
 
