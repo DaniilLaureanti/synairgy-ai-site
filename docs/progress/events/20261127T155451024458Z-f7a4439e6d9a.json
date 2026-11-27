@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "id": "20261127T155451024458Z-f7a4439e6d9a",
+  "kind": "checkpoint",
+  "at": "2026-11-27T15:54:51.024458+00:00",
+  "source": {
+    "digest": "e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7",
+    "scope": "worktree",
+    "head": "cbf0e8120df5649d524b6de4d4f69ecbc4aa37c1"
+  },
+  "task": "Shared development continuity: remote synchronization",
+  "summary": [
+    "Final source snapshot passed 30 recovery tests, 99 engine tests, architecture/site, Git-view/range verification and whitespace checks."
+  ],
+  "next_step": "Publish the complete commit sequence, inspect CI, then append remote identifiers and final synchronization state.",
+  "decisions": [
+    "Preserve each local source tree and its journal when publishing through GitHub; context HEAD fields remain facts about the local execution environment."
+  ],
+  "blockers": [],
+  "external_operations": [
+    "Pending GitHub connector publication: branch codex/project-continuity-20261127; PR/run IDs not yet assigned."
+  ],
+  "checks": [
+    {
+      "run_id": "20261127T155349866571Z-ebc2e77323c2",
+      "check": "architecture",
+      "outcome": "passed"
+    },
+    {
+      "run_id": "20261127T155349977746Z-1a7d3d9e9b70",
+      "check": "tooling",
+      "outcome": "passed"
+    },
+    {
+      "run_id": "20261127T155352102625Z-322f30f0933f",
+      "check": "engine",
+      "outcome": "passed"
+    },
+    {
+      "run_id": "20261127T155359236004Z-0197b3e4f534",
+      "check": "site",
+      "outcome": "passed"
+    }
+  ]
+}

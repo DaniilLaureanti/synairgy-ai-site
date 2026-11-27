@@ -2,12 +2,13 @@
 
 Updated: 2026-11-27. Canonical development handoff; historical Notion notes are context.
 
-<!-- progress-state {"checkpoint":"20261127T155349582242Z-9b5943c3bc35","source_digest":"e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7"} -->
+<!-- progress-state {"checkpoint":"20261127T155451024458Z-f7a4439e6d9a","source_digest":"e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7"} -->
 
 ## Current task
 
-Implement shared agent instructions, durable checkpoints and recovery checks in
-this repository. Branch: `codex/project-continuity-20261127`; baseline main
+Shared agent rules and Git-backed recovery are implemented and locally verified.
+Remaining work in this task: synchronize the commit sequence and verify GitHub CI.
+Branch: `codex/project-continuity-20261127`; baseline main
 `fa12511` (includes the Telegram console and subsequent Meta domain verification).
 
 ## Acceptance criteria
@@ -28,15 +29,15 @@ this repository. Branch: `codex/project-continuity-20261127`; baseline main
 - Implemented shared entry files, stdlib progress runner, immutable source-bound
   check events, index-aware pre-commit hook, CI and architecture dependency checks.
 - ADR 0001 records the chosen Git handoff design and limits.
-- First complete run passed: 26 recovery/tooling tests, 99 engine tests, architecture
-  and site checks. Added atomic journal publication and three additional cases
-  after review; the final source snapshot still needs a new full run.
+- Final complete run passed: 30 recovery/tooling tests, 99 engine tests, architecture
+  and site checks. Atomic event publication prevents partial final JSON; referenced
+  check evidence must be staged with its checkpoint.
 - Installed the local hook without replacing existing settings (none existed).
 
 ## Next step
 
-Run the final 30 recovery/tooling tests and existing offline suites, then record
-the results, push the implementation branch and verify the GitHub checks.
+Publish the locally committed source trees and journal through the GitHub connector,
+create a PR, inspect the remote CI results and record their identifiers before handoff.
 
 ## Blockers and questions
 
@@ -48,14 +49,14 @@ the results, push the implementation branch and verify the GitHub checks.
 
 ## Verification
 
-- Source snapshot `7acaa8306fcc78e08afca12594590843887081d3ad3460ee22bc0edcc1b0476d`:
-  architecture passed; 26 tooling tests passed; 99 engine tests passed; site passed.
+- Final source snapshot `e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7`:
+  architecture passed; 30 tooling tests passed; 99 engine tests passed; site passed.
 - One existing Starlette/httpx deprecation warning; no product test failure.
-- The atomic-publication revision is not yet validated; prior results are retained
-  in immutable events and do not claim to cover the new source snapshot.
-- Intermediate atomic-publication snapshot `d038531d2bcfcc5664f2d12d2d8b5d58f831cafa2c6f96c2041c1b9813212a84`
-  passed 29 tooling tests, 99 engine tests and architecture/site checks. Review then
-  added enforcement that checkpoints carry their referenced check evidence in Git.
+- Actual hard-kill → commit → fresh clone recovery passed and retained unknown.
+  Stale worktree/index, omitted run evidence, journal mutation/deletion, intermediate
+  unjournaled commits, preserved existing hooks and architecture violations tested.
+- Worktree, staged index, committed snapshot/range verification and diff whitespace
+  checks passed. Earlier results remain in immutable history. Remote CI is pending.
 
 ## External operations
 
