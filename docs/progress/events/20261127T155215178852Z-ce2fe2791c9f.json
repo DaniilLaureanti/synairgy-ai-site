@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "20261127T155215178852Z-ce2fe2791c9f",
+  "kind": "checkpoint",
+  "at": "2026-11-27T15:52:15.178852+00:00",
+  "source": {
+    "digest": "d038531d2bcfcc5664f2d12d2d8b5d58f831cafa2c6f96c2041c1b9813212a84",
+    "scope": "worktree",
+    "head": "b466407f987af52fd8614ab9e79e652b9dc94e98"
+  },
+  "task": "Shared development continuity",
+  "summary": [
+    "First full offline run passed 26 recovery tests and 99 engine tests plus architecture/site; review added atomic publication and three corruption/publication cases."
+  ],
+  "next_step": "Commit this revision, run the complete final source snapshot, then publish the branch and inspect CI.",
+  "decisions": [
+    "Publish fully flushed event files atomically; keep pending writes ignored. Pin Node 24 in the existing site CI job."
+  ],
+  "blockers": [],
+  "external_operations": [],
+  "checks": []
+}

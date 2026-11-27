@@ -2,7 +2,7 @@
 
 Updated: 2026-11-27. Canonical development handoff; historical Notion notes are context.
 
-<!-- progress-state {"checkpoint":"20261127T155004652631Z-e473b4714de4","source_digest":"7acaa8306fcc78e08afca12594590843887081d3ad3460ee22bc0edcc1b0476d"} -->
+<!-- progress-state {"checkpoint":"20261127T155215178852Z-ce2fe2791c9f","source_digest":"d038531d2bcfcc5664f2d12d2d8b5d58f831cafa2c6f96c2041c1b9813212a84"} -->
 
 ## Current task
 
@@ -25,12 +25,18 @@ this repository. Branch: `codex/project-continuity-20261127`; baseline main
 - Recovered repository from GitHub after temporary workspace cleanup.
 - Inspected current architecture, Python/Node tests, GitHub Actions and Notion handoff.
 - No existing AGENTS.md, task CLI or custom Git hook configuration was present.
-- Added initial shared entry files and stdlib progress runner.
+- Implemented shared entry files, stdlib progress runner, immutable source-bound
+  check events, index-aware pre-commit hook, CI and architecture dependency checks.
+- ADR 0001 records the chosen Git handoff design and limits.
+- First complete run passed: 26 recovery/tooling tests, 99 engine tests, architecture
+  and site checks. Added atomic journal publication and three additional cases
+  after review; the final source snapshot still needs a new full run.
+- Installed the local hook without replacing existing settings (none existed).
 
 ## Next step
 
-Finish dependency checks, recovery tests and CI integration; then run the full
-offline suite, checkpoint, commit, push and verify the remote result.
+Run the final 29 recovery/tooling tests and existing offline suites, then record
+the results, push the implementation branch and verify the GitHub checks.
 
 ## Blockers and questions
 
@@ -42,8 +48,11 @@ offline suite, checkpoint, commit, push and verify the remote result.
 
 ## Verification
 
-- Repository inspection only. Historical 99-test result is not a result of this task.
-- New checks have not run yet. Check events below are the machine-readable evidence.
+- Source snapshot `7acaa8306fcc78e08afca12594590843887081d3ad3460ee22bc0edcc1b0476d`:
+  architecture passed; 26 tooling tests passed; 99 engine tests passed; site passed.
+- One existing Starlette/httpx deprecation warning; no product test failure.
+- The atomic-publication revision is not yet validated; prior results are retained
+  in immutable events and do not claim to cover the new source snapshot.
 
 ## External operations
 

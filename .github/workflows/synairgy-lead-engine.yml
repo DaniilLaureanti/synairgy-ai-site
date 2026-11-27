@@ -45,6 +45,10 @@ jobs:
           cache-dependency-path: lead-engine/requirements*.txt
       - name: Install
         run: python -m pip install -r lead-engine/requirements-dev.txt
+      - name: Set up Node for the buildless site check
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
       - name: Unit and end-to-end tests (no live services)
         run: python scripts/progress.py run engine
       - name: Preserve existing marketing site

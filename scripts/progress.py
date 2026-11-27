@@ -125,13 +125,19 @@ def append(root, kind, **fields):
     record = safe({"schema": SCHEMA, "id": identity, "kind": kind, "at": now.isoformat(), **fields})
     directory = Path(root) / EVENTS
     directory.mkdir(parents=True, exist_ok=True)
-    # Exclusive creation + fsync: parallel writers never replace an earlier event.
+    # Publish a complete event atomically and exclusively. A killed writer cannot
+    # leave a truncated final JSON file; ignored pending files are not events.
     path = directory / f"{identity}.json"
-    with path.open("x", encoding="utf-8") as stream:
-        json.dump(record, stream, ensure_ascii=False, indent=2)
-        stream.write("\n")
-        stream.flush()
-        os.fsync(stream.fileno())
+    fd, pending = tempfile.mkstemp(dir=directory, prefix=".pending-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(record, stream, ensure_ascii=False, indent=2)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.link(pending, path)  # Same filesystem, no replacement of existing ID.
+    finally:
+        os.unlink(pending)
     return record
 
 
@@ -144,6 +150,8 @@ def records(view):
             row = json.loads(view.read(path))
         except (ValueError, UnicodeDecodeError) as exc:
             raise ProgressError("Invalid journal JSON.") from exc
+        if not isinstance(row, dict) or not isinstance(row.get("source"), dict):
+            raise ProgressError(f"Malformed journal event: {path}")
         safe(row)
         if row.get("schema") != SCHEMA or row.get("id") != Path(path).stem:
             raise ProgressError("Journal schema or event identity mismatch.")
@@ -153,6 +161,8 @@ def records(view):
             raise ProgressError("Journal event has no valid source fingerprint.")
         if row["kind"] == "checkpoint" and not all(row.get(k) for k in ("task", "summary", "next_step")):
             raise ProgressError("Checkpoint lacks task, facts or next step.")
+        if row["kind"] == "check-start" and not isinstance(row.get("check"), str):
+            raise ProgressError("Check start lacks a check name.")
         result.append(row)
     starts = {r["id"]: r for r in result if r["kind"] == "check-start"}
     for row in result:
@@ -179,6 +189,8 @@ def state_marker(view):
         marker = json.loads(matches[0])
     except ValueError as exc:
         raise ProgressError("Invalid status marker.") from exc
+    if not isinstance(marker, dict):
+        raise ProgressError("Status marker must be an object.")
     required = ("Current task", "Acceptance criteria", "Completed", "Next step", "Blockers and questions", "Verification", "External operations")
     if any(f"## {name}\n" not in status for name in required):
         raise ProgressError("PROJECT_STATUS.md is missing a required handoff section.")
@@ -267,7 +279,9 @@ def checkpoint(root, args):
     if len(MARKER.findall(status)) != 1:
         raise ProgressError("Add the single progress-state placeholder to PROJECT_STATUS.md first.")
     record = append(root, "checkpoint", source=view.source(), task=args.task, summary=args.summary,
-                    next_step=args.next, decisions=args.decision, blockers=args.blocker, external_operations=args.external)
+                    next_step=args.next, decisions=args.decision, blockers=args.blocker, external_operations=args.external,
+                    checks=[{"run_id": r["id"], "check": r["check"], "outcome": r["outcome"]}
+                            for r in check_states(records(view)) if r["source"]["digest"] == view.digest()])
     marker = "<!-- progress-state " + json.dumps({"checkpoint": record["id"], "source_digest": view.digest()}, separators=(",", ":")) + " -->"
     updated = MARKER.sub(lambda _: marker, status)
     # Atomic status update. A crash before this leaves a visible verification failure.

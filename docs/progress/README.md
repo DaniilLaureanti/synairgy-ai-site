@@ -37,7 +37,10 @@ with IDs if known; before starting, record that the ID is not yet known. Reconci
 an ambiguous provider result by querying its state before retrying. No secrets,
 private capability URLs or CRM records in these fields.
 
-Each event is created exclusively, flushed and fsynced. A checkpoint updates only
+Each event is flushed and fsynced in an ignored temporary file, then published
+atomically without replacing an existing event. A killed writer can leave an
+ignored `.pending-*.tmp`, never a partial final event. Such temporary files can be
+removed; they are not history. A checkpoint updates only
 the status marker atomically; status prose is deliberately written by the agent.
 A crash between event creation and status update is detected by verification.
 An abrupt filesystem/power failure still depends on the host filesystem; Git push

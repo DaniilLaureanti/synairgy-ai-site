@@ -31,7 +31,7 @@ class RepositoryTest(unittest.TestCase):
         self.git("init", "-b", "main")
         self.git("config", "user.name", "Workflow fixture")
         self.git("config", "user.email", "fixture@example.test")
-        self.write(".gitignore", ".env\n__pycache__/\n")
+        self.write(".gitignore", ".env\n__pycache__/\n.progress-status-*\ndocs/progress/events/.pending-*.tmp\n")
         self.write("app.py", "value = 1\n")
         self.write("scripts/progress.py", (ROOT / "scripts/progress.py").read_text())
         self.write(".githooks/pre-commit", (ROOT / ".githooks/pre-commit").read_text())
@@ -259,6 +259,36 @@ class RepositoryTest(unittest.TestCase):
     def test_status_without_required_sections_is_rejected(self):
         self.write(p.STATUS, "<!-- progress-state {} -->\n")
         self.assertTrue(p.verify(self.root))
+
+    def test_atomic_publication_contains_complete_json_and_no_pending_source(self):
+        original_link = os.link
+        published = []
+
+        def publish(source, destination):
+            self.assertFalse(Path(destination).exists())
+            self.assertIsInstance(json.loads(Path(source).read_text()), dict)
+            self.assertEqual(p.View(self.root).digest(), before)
+            original_link(source, destination)
+            published.append(destination)
+
+        before = p.View(self.root).digest()
+        with patch.object(p.os, "link", publish):
+            self.checkpoint()
+        self.assertEqual(len(published), 1)
+        self.assertFalse(list((self.root / p.EVENTS).glob(".pending-*")))
+
+    def test_failed_publication_does_not_leave_partial_events(self):
+        before = len(self.rows())
+        with patch.object(p.os, "link", side_effect=OSError("publication failed")):
+            with self.assertRaises(OSError):
+                self.checkpoint()
+        self.assertEqual(len(self.rows()), before)
+        self.assertFalse(list((self.root / p.EVENTS).glob(".pending-*")))
+
+    def test_malformed_event_is_reported_without_claiming_a_result(self):
+        old = next((self.root / p.EVENTS).glob("*.json"))
+        old.write_text("[]\n")
+        self.assertTrue(any("Malformed journal" in error for error in p.verify(self.root)))
 
 
 class ArchitectureTest(unittest.TestCase):
