@@ -2,12 +2,12 @@
 
 Updated: 2026-11-27. Canonical development handoff; historical Notion notes are context.
 
-<!-- progress-state {"checkpoint":"20261127T155451024458Z-f7a4439e6d9a","source_digest":"e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7"} -->
+<!-- progress-state {"checkpoint":"20261127T155750532505Z-33f009fedeaa","source_digest":"e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7"} -->
 
 ## Current task
 
 Shared agent rules and Git-backed recovery are implemented and locally verified.
-Remaining work in this task: synchronize the commit sequence and verify GitHub CI.
+Remaining work in this task: finish PR #5 integration and final handoff metadata.
 Branch: `codex/project-continuity-20261127`; baseline main
 `fa12511` (includes the Telegram console and subsequent Meta domain verification).
 
@@ -36,8 +36,9 @@ Branch: `codex/project-continuity-20261127`; baseline main
 
 ## Next step
 
-Publish the locally committed source trees and journal through the GitHub connector,
-create a PR, inspect the remote CI results and record their identifiers before handoff.
+Confirm the final PR #5 head checks, integrate into main, then append the merge and
+final synchronization evidence. After this task, resume the separate cloud-launch
+task by checking the current Render account/service and Telegram runtime state.
 
 ## Blockers and questions
 
@@ -56,14 +57,25 @@ create a PR, inspect the remote CI results and record their identifiers before h
   Stale worktree/index, omitted run evidence, journal mutation/deletion, intermediate
   unjournaled commits, preserved existing hooks and architecture violations tested.
 - Worktree, staged index, committed snapshot/range verification and diff whitespace
-  checks passed. Earlier results remain in immutable history. Remote CI is pending.
+  checks passed. Earlier results remain in immutable history.
+- GitHub PR head `d812040ae79d7e7485e040fa93951b769c051330`:
+  Development continuity run 46029247352 succeeded; engine test job 140608522462 in
+  run 46029247357 succeeded (99 tests/site); runtime job was skipped as intended.
+- A real clean clone of that remote branch recovered all four current-source
+  passing checks without old chat, credentials or installed application packages.
+  All published source trees were matched against their local tree hashes.
 
 ## External operations
 
 - Repository: https://github.com/DaniilLaureanti/synairgy-ai-site
 - Git CLI push readiness check found no shell credential. No remote write occurred.
-  Use the connected GitHub tools to synchronize the branch and inspect CI; do not
-  request or copy a new token for this task. Remote branch/PR IDs are not yet created.
+  Used the existing GitHub connection instead; no new token was requested/copied.
+- Published branch: `codex/project-continuity-20261127`, head `d812040ae79d7e7485e040fa93951b769c051330`.
+- Pending integration: https://github.com/DaniilLaureanti/synairgy-ai-site/pull/5
+- CI evidence: https://github.com/DaniilLaureanti/synairgy-ai-site/actions/runs/46029247352
+  and https://github.com/DaniilLaureanti/synairgy-ai-site/actions/runs/46029247357
+- Pending documentation update: link canonical Git status from the existing Notion
+  page above. Do not move secrets or replace its business history.
 - Prior merged Telegram implementation: PR #4. No deployment or billing operation
   is started by this development-continuity task.
 
