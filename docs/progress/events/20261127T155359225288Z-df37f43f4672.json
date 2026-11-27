@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "20261127T155359225288Z-df37f43f4672",
+  "kind": "check-finish",
+  "at": "2026-11-27T15:53:59.225288+00:00",
+  "source": {
+    "digest": "e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7",
+    "scope": "worktree",
+    "head": "cbf0e8120df5649d524b6de4d4f69ecbc4aa37c1"
+  },
+  "run_id": "20261127T155352102625Z-322f30f0933f",
+  "check": "engine",
+  "outcome": "passed",
+  "returncode": 0,
+  "after_digest": "e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7",
+  "reason": "completed"
+}

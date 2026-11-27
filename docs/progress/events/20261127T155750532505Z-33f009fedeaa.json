@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "id": "20261127T155750532505Z-33f009fedeaa",
+  "kind": "checkpoint",
+  "at": "2026-11-27T15:57:50.532505+00:00",
+  "source": {
+    "digest": "e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7",
+    "scope": "worktree",
+    "head": "d812040ae79d7e7485e040fa93951b769c051330"
+  },
+  "task": "Shared development continuity: integrate verified PR 5",
+  "summary": [
+    "Code and journal are on GitHub with identical source trees. Both PR check suites passed; a real fresh remote clone recovered current state without the previous environment."
+  ],
+  "next_step": "Publish this metadata checkpoint, confirm PR 5 CI, integrate main, and record completion plus Notion link.",
+  "decisions": [
+    "GitHub API commit identities differ from local execution HEAD context; all four historical source trees are byte-identical and preserved remotely."
+  ],
+  "blockers": [],
+  "external_operations": [
+    "PR 5 pending merge after final metadata-head checks: https://github.com/DaniilLaureanti/synairgy-ai-site/pull/5",
+    "Completed CI: continuity run 46029247352; engine test job 140608522462 in run 46029247357. Runtime skipped.",
+    "Pending: link canonical Git handoff from existing Notion page 3bafbfa2-3fa2-81a8-9898-e4c565a22b68."
+  ],
+  "checks": [
+    {
+      "run_id": "20261127T155349866571Z-ebc2e77323c2",
+      "check": "architecture",
+      "outcome": "passed"
+    },
+    {
+      "run_id": "20261127T155349977746Z-1a7d3d9e9b70",
+      "check": "tooling",
+      "outcome": "passed"
+    },
+    {
+      "run_id": "20261127T155352102625Z-322f30f0933f",
+      "check": "engine",
+      "outcome": "passed"
+    },
+    {
+      "run_id": "20261127T155359236004Z-0197b3e4f534",
+      "check": "site",
+      "outcome": "passed"
+    }
+  ]
+}

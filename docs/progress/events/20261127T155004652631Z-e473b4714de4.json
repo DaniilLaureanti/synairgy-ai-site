@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "20261127T155004652631Z-e473b4714de4",
+  "kind": "checkpoint",
+  "at": "2026-11-27T15:50:04.652631+00:00",
+  "source": {
+    "digest": "7acaa8306fcc78e08afca12594590843887081d3ad3460ee22bc0edcc1b0476d",
+    "scope": "worktree",
+    "head": "fa125118e2933fd967a97d4ffbf146f66f2280a0"
+  },
+  "task": "Shared development continuity",
+  "summary": [
+    "Implemented shared rules, immutable check events, three Git snapshot views, architecture boundaries, CI and 26 recovery tests."
+  ],
+  "next_step": "Commit the implementation checkpoint before running architecture, recovery, engine and site checks.",
+  "decisions": [
+    "ADR 0001 documents source hashing, append-only records, hook preservation and CI artifact limits."
+  ],
+  "blockers": [],
+  "external_operations": []
+}

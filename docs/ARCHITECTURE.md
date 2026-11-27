@@ -2,6 +2,10 @@
 
 The project intentionally stays buildless: GitHub Pages serves semantic HTML, layered CSS and native ES modules.
 
+Shared development rules and automated module-boundary checks are documented in
+[DEVELOPMENT_ARCHITECTURE.md](DEVELOPMENT_ARCHITECTURE.md); recovery starts in the
+root [AGENTS.md](../AGENTS.md) and [PROJECT_STATUS.md](../PROJECT_STATUS.md).
+
 ## Layers
 
 - `assets/css/tokens.css` — brand tokens and reusable design values.

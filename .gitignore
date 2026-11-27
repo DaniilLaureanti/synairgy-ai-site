@@ -10,3 +10,7 @@ lead-engine/out/
 lead-engine/data/
 *.sqlite*
 
+# Incomplete development-state writes are never published journal events.
+.progress-status-*
+docs/progress/events/.pending-*.tmp
+

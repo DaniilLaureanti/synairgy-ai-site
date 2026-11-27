@@ -1,5 +1,8 @@
 # Commercial engine v2 — architecture and operating boundary
 
+Development dependency rules: [shared architecture policy](../docs/DEVELOPMENT_ARCHITECTURE.md).
+Task recovery and check evidence: [PROJECT_STATUS.md](../PROJECT_STATUS.md).
+
 ## Decisions
 
 This is a **modular monolith**, not ten independently deployed microservices.

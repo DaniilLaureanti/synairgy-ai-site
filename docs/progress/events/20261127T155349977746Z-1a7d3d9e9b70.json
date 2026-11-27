@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "id": "20261127T155349977746Z-1a7d3d9e9b70",
+  "kind": "check-start",
+  "at": "2026-11-27T15:53:49.977746+00:00",
+  "source": {
+    "digest": "e10a0029168d01d0193885646dd683733eb5c146c7a1cfe22cd17172cee28ed7",
+    "scope": "worktree",
+    "head": "cbf0e8120df5649d524b6de4d4f69ecbc4aa37c1"
+  },
+  "check": "tooling",
+  "python": "3.12.14",
+  "platform": "linux"
+}
