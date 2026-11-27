@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "20261127T154541922281Z-fd7b8d7d0886",
+  "kind": "checkpoint",
+  "at": "2026-11-27T15:45:41.922281+00:00",
+  "source": {
+    "digest": "892fe7d1ffe63557bef0ff2782a846db1bdcf6193c976d5e49dfddb49e2c4a15",
+    "scope": "worktree",
+    "head": "fa125118e2933fd967a97d4ffbf146f66f2280a0"
+  },
+  "task": "Shared development continuity",
+  "summary": [
+    "Inspected current main, architecture, CI, tests and historical Notion state; created shared entry files and initial runner."
+  ],
+  "next_step": "Implement architecture checks, recovery tests and CI before full offline verification.",
+  "decisions": [
+    "Git status and immutable JSON events are the canonical development state; no new runtime service."
+  ],
+  "blockers": [],
+  "external_operations": []
+}

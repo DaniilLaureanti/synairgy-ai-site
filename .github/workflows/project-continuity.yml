@@ -1,0 +1,43 @@
+name: Development continuity
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  continuity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact source head with history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Verify committed handoff and immutable history
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = pull_request ]; then
+            BASE_SHA=$(git merge-base "$BASE_SHA" HEAD)
+          fi
+          python scripts/progress.py verify --scope commit --base "$BASE_SHA"
+      - name: Architecture boundaries and provider entrypoints
+        run: python scripts/progress.py run architecture
+      - name: Recovery, interruption, staging and hook tests
+        run: python scripts/progress.py run tooling
+      - name: Retain check metadata without terminal output or credentials
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: development-checks-${{ github.run_id }}-${{ github.run_attempt }}
+          path: docs/progress/events/*.json
+          retention-days: 30

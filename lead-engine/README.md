@@ -3,6 +3,11 @@
 A resumable commercial workflow built on the existing SynAirgy Python project.
 The public marketing website is preserved; this is not the Crosspost project.
 
+For development/recovery start at the root [AGENTS.md](../AGENTS.md),
+[PROJECT_STATUS.md](../PROJECT_STATUS.md) and [progress guide](../docs/progress/README.md).
+From the repository root, `python scripts/progress.py run all` runs the offline
+checks with source-bound progress records. The raw commands below remain available.
+
 ## Telegram console first
 
 The owner console now has Russian menus, paginated leads, portfolio/cash views,

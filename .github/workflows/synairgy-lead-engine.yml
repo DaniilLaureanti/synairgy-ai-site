@@ -2,10 +2,10 @@ name: SynAirgy Lead Engine
 
 on:
   push:
-    branches: [main, 'codex/lead-engine-v2*', 'codex/market-portfolio*', 'codex/cloud-launch*', 'codex/telegram-console*']
-    paths: ['lead-engine/**', 'render.yaml', '.python-version', '.github/workflows/synairgy-lead-engine.yml']
+    branches: [main, 'codex/lead-engine-v2*', 'codex/market-portfolio*', 'codex/cloud-launch*', 'codex/telegram-console*', 'codex/project-continuity*']
+    paths: ['lead-engine/**', 'render.yaml', '.python-version', '.github/workflows/synairgy-lead-engine.yml', 'scripts/**', 'tests/**', 'AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md', 'docs/**']
   pull_request:
-    paths: ['lead-engine/**', 'render.yaml', '.python-version', '.github/workflows/synairgy-lead-engine.yml']
+    paths: ['lead-engine/**', 'render.yaml', '.python-version', '.github/workflows/synairgy-lead-engine.yml', 'scripts/**', 'tests/**', 'AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md', 'docs/**']
   schedule:
     - cron: '10 9 * * 1-5'
       timezone: 'Europe/Berlin'
@@ -46,10 +46,16 @@ jobs:
       - name: Install
         run: python -m pip install -r lead-engine/requirements-dev.txt
       - name: Unit and end-to-end tests (no live services)
-        working-directory: lead-engine
-        run: python -m pytest -q
+        run: python scripts/progress.py run engine
       - name: Preserve existing marketing site
-        run: node tests/site-structure.mjs
+        run: python scripts/progress.py run site
+      - name: Retain source-bound check metadata
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: engine-checks-${{ github.run_id }}-${{ github.run_attempt }}
+          path: docs/progress/events/*.json
+          retention-days: 30
 
   runtime:
     needs: tests
